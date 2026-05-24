@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRVE Configurateur — Étude Tarifaire</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --noir:#0a0e14; --noir2:#111822; --carte:#141d2b; --bord:#1e2d45;
+    --accent:#00e5a0; --accent2:#0094ff; --rouge:#ff4d6d; --jaune:#ffd166;
+    --texte:#c8d8f0; --gris:#6b85a8; --blanc:#f0f7ff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--texte);min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 10% 20%,rgba(0,229,160,.06) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 90% 80%,rgba(0,148,255,.07) 0%,transparent 60%);pointer-events:none;z-index:0;}
+  header{position:relative;z-index:10;padding:28px 40px 0;display:flex;align-items:center;gap:16px;}
+  .logo-badge{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:22px;}
+  header h1{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--blanc);letter-spacing:-.5px;}
+  header p{font-size:13px;color:var(--gris);margin-top:2px;}
+  .header-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+  .badge-live{display:flex;align-items:center;gap:6px;background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);padding:5px 12px;border-radius:20px;color:var(--accent);font-size:11px;font-weight:500;}
+  .dot-live{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+  main{position:relative;z-index:1;max-width:1120px;margin:32px auto;padding:0 24px 80px;}
+  .stepper{display:flex;margin-bottom:36px;background:var(--carte);border:1px solid var(--bord);border-radius:14px;overflow:hidden;}
+  .step{flex:1;padding:13px 10px;text-align:center;cursor:pointer;font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--gris);border-right:1px solid var(--bord);transition:all .2s;position:relative;letter-spacing:.4px;text-transform:uppercase;}
+  .step:last-child{border-right:none;}
+  .step.active{color:var(--blanc);background:rgba(0,229,160,.08);}
+  .step.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent);}
+  .step.done{color:var(--accent);}
+  .step-num{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;font-size:10px;background:rgba(255,255,255,.08);margin-right:5px;vertical-align:middle;}
+  .step.active .step-num,.step.done .step-num{background:var(--accent);color:var(--noir);}
+  .panel{display:none;}
+  .panel.active{display:block;animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .section-title{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;color:var(--blanc);margin-bottom:5px;}
+  .section-sub{font-size:13px;color:var(--gris);margin-bottom:24px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+  .card{background:var(--carte);border:1px solid var(--bord);border-radius:14px;padding:20px;}
+  .field-group{margin-bottom:18px;}
+  .field-group:last-child{margin-bottom:0;}
+  label{display:block;font-size:11px;font-weight:500;color:var(--gris);margin-bottom:7px;letter-spacing:.4px;text-transform:uppercase;}
+  input[type=number],input[type=text],select{width:100%;background:var(--noir2);border:1px solid var(--bord);border-radius:9px;padding:10px 14px;color:var(--blanc);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+  input:focus,select:focus{border-color:var(--accent);}
+  select option{background:var(--noir2);}
+  .radio-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:9px;}
+  .radio-card{cursor:pointer;position:relative;}
+  .radio-card input{position:absolute;opacity:0;}
+  .radio-card-inner{border:1.5px solid var(--bord);border-radius:11px;padding:12px 10px;text-align:center;transition:all .18s;background:var(--noir2);display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .radio-card input:checked+.radio-card-inner{border-color:var(--accent);background:rgba(0,229,160,.08);}
+  .radio-card-inner .ico{font-size:20px;}
+  .radio-card-inner .lbl{font-size:11px;font-weight:500;color:var(--gris);}
+  .radio-card input:checked+.radio-card-inner .lbl{color:var(--accent);}
+  .alert{padding:11px 14px;border-radius:10px;font-size:12.5px;display:flex;gap:9px;align-items:flex-start;margin-top:10px;}
+  .alert.warning{background:rgba(255,209,102,.1);border:1px solid rgba(255,209,102,.3);color:var(--jaune);}
+  .alert.info{background:rgba(0,148,255,.1);border:1px solid rgba(0,148,255,.3);color:#70c0ff;}
+  .alert.danger{background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.3);color:var(--rouge);}
+  .btn-row{display:flex;gap:12px;justify-content:flex-end;margin-top:28px;}
+  .btn{padding:11px 26px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans';transition:all .18s;display:flex;align-items:center;gap:8px;}
+  .btn-primary{background:var(--accent);color:var(--noir);font-weight:700;}
+  .btn-primary:hover{background:#00ffb3;transform:translateY(-1px);}
+  .btn-secondary{background:transparent;border:1.5px solid var(--bord);color:var(--texte);}
+  .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-pdf{background:rgba(0,148,255,.15);border:1.5px solid var(--accent2);color:var(--accent2);}
+  .btn-pdf:hover{background:rgba(0,148,255,.28);}
+  #results{display:none;}
+  .result-hero{background:linear-gradient(135deg,rgba(0,229,160,.12),rgba(0,148,255,.08));border:1px solid rgba(0,229,160,.3);border-radius:18px;padding:28px;margin-bottom:22px;position:relative;overflow:hidden;}
+  .result-hero::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:radial-gradient(circle,rgba(0,229,160,.15),transparent 70%);border-radius:50%;}
+  .winner-tag{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:var(--noir);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;font-family:'Syne';letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px;}
+  .winner-name{font-family:'Syne';font-size:28px;font-weight:800;color:var(--blanc);line-height:1.1;margin-bottom:4px;}
+  .winner-offer{font-size:14px;color:var(--accent);font-weight:500;margin-bottom:14px;}
+  .winner-metrics{display:flex;gap:24px;flex-wrap:wrap;}
+  .metric-val{font-family:'Syne';font-size:24px;font-weight:800;color:var(--blanc);}
+  .metric-val.green{color:var(--accent);}
+  .metric-val.blue{color:var(--accent2);}
+  .metric-label{font-size:10px;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+  .rank-list{display:flex;flex-direction:column;gap:9px;}
+  .rank-item{background:var(--carte);border:1px solid var(--bord);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;}
+  .rank-item.rank-1{border-color:rgba(0,229,160,.4);background:rgba(0,229,160,.04);}
+  .rank-item.rank-2{border-color:rgba(255,209,102,.3);}
+  .rank-pos{font-family:'Syne';font-size:17px;font-weight:800;color:var(--gris);width:26px;text-align:center;flex-shrink:0;}
+  .rank-1 .rank-pos{color:var(--accent);}
+  .rank-2 .rank-pos{color:var(--jaune);}
+  .rank-info{flex:1;}
+  .rank-provider{font-family:'Syne';font-size:13px;font-weight:700;color:var(--blanc);}
+  .rank-offre{font-size:11px;color:var(--gris);margin-top:2px;}
+  .rank-tags{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;}
+  .tag{padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500;background:rgba(255,255,255,.07);color:var(--gris);}
+  .tag.green{background:rgba(0,229,160,.12);color:var(--accent);}
+  .tag.blue{background:rgba(0,148,255,.12);color:var(--accent2);}
+  .tag.red{background:rgba(255,77,109,.12);color:var(--rouge);}
+  .rank-price{text-align:right;flex-shrink:0;}
+  .price-val{font-family:'Syne';font-size:15px;font-weight:700;color:var(--blanc);}
+  .price-diff{font-size:11px;margin-top:2px;}
+  .price-diff.better{color:var(--accent);}
+  .price-diff.worse{color:var(--rouge);}
+  .roi-card{background:var(--carte);border:1px solid var(--bord);border-radius:14px;padding:22px;margin-top:22px;}
+  .roi-title{font-family:'Syne';font-size:15px;font-weight:700;color:var(--blanc);margin-bottom:14px;}
+  .roi-bar-track{height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+  .roi-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width 1s ease;}
+  .roi-legend{display:flex;justify-content:space-between;font-size:10px;color:var(--gris);margin-top:4px;}
+  .compare-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:14px;}
+  .compare-table th{text-align:left;padding:9px 11px;font-size:10px;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--bord);}
+  .compare-table td{padding:10px 11px;border-bottom:1px solid rgba(30,45,69,.5);color:var(--texte);}
+  .compare-table tr:last-child td{border-bottom:none;}
+  .compare-table tr.highlight td{background:rgba(0,229,160,.04);}
+  .spinner{display:none;text-align:center;padding:60px 20px;}
+  .spinner.active{display:block;}
+  .spin-icon{font-size:36px;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  input[type=range]{-webkit-appearance:none;width:100%;height:6px;background:rgba(255,255,255,.1);border-radius:3px;outline:none;cursor:pointer;border:none;padding:0;margin-top:6px;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 4px rgba(0,229,160,.2);}
+  .range-val{font-size:17px;font-weight:700;color:var(--accent);font-family:'Syne';margin-bottom:2px;}
+  .divider{height:1px;background:var(--bord);margin:20px 0;}
+  .info-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px;}
+  .chip{background:rgba(255,255,255,.05);border:1px solid var(--bord);padding:3px 9px;border-radius:20px;font-size:10.5px;color:var(--gris);}
+  #hchp-section{display:none;}
+  #hchp-section.visible{display:block;}
+  #loading-overlay{display:none;position:fixed;inset:0;z-index:999;background:rgba(10,14,20,.88);backdrop-filter:blur(4px);align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+  #loading-overlay.active{display:flex;}
+  .loading-text{font-family:'Syne';font-size:16px;color:var(--blanc);}
+  .loading-sub{font-size:12px;color:var(--gris);}
+  @media(max-width:700px){.grid-2,.grid-3{grid-template-columns:1fr;}header{padding:18px;}main{padding:0 12px 60px;}.winner-name{font-size:22px;}.winner-metrics{gap:14px;}}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div style="font-size:38px;animation:spin 1s linear infinite;">⚡</div>
+  <div class="loading-text">Analyse en cours…</div>
+  <div class="loading-sub" id="loading-step">Récupération des tarifs à jour…</div>
+</div>
+
+<header>
+  <div class="logo-badge">⚡</div>
+  <div>
+    <h1>IRVE Configurateur</h1>
+    <p>Étude tarifaire & rentabilité de borne de recharge</p>
+  </div>
+  <div class="header-right">
+    <div class="badge-live"><span class="dot-live"></span>Tarifs mis à jour</div>
+    <span id="tarif-date" style="font-size:11px;color:var(--gris);">—</span>
+  </div>
+</header>
+
+<main>
+  <div class="stepper">
+    <div class="step active" data-step="1"><span class="step-num">1</span>Abonnement actuel</div>
+    <div class="step" data-step="2"><span class="step-num">2</span>Logement</div>
+    <div class="step" data-step="3"><span class="step-num">3</span>Véhicule</div>
+    <div class="step" data-step="4"><span class="step-num">4</span>Borne IRVE</div>
+    <div class="step" data-step="5"><span class="step-num">5</span>Résultats</div>
+  </div>
+
+  <!-- PANEL 1 -->
+  <div class="panel active" id="panel-1">
+    <div class="section-title">Votre abonnement actuel</div>
+    <div class="section-sub">Renseignez votre contrat en cours pour établir la référence de comparaison.</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="field-group">
+          <label>Fournisseur & contrat actuel</label>
+          <select id="fournisseur-actuel" onchange="onFournisseurChange()">
+            <optgroup label="── EDF ──">
+              <option value="edf_base">EDF — Tarif Bleu Base</option>
+              <option value="edf_hchp">EDF — Tarif Bleu HP/HC</option>
+              <option value="edf_tempo">EDF — Option Tempo</option>
+              <option value="edf_ejp">EDF — Option EJP</option>
+              <option value="edf_zen_fixe">EDF — Zen Fixe (marché)</option>
+            </optgroup>
+            <optgroup label="── Engie ──">
+              <option value="engie_base">Engie — Elec Online Fixe Base</option>
+              <option value="engie_hchp">Engie — Elec Online Fixe HC/HP</option>
+            </optgroup>
+            <optgroup label="── TotalEnergies ──">
+              <option value="total_heures_eco">TotalEnergies — Heures Eco Base</option>
+              <option value="total_hchp">TotalEnergies — Heures Eco HC/HP</option>
+              <option value="total_heures_eco_plus">TotalEnergies — Heures Eco+ (Tempo-like)</option>
+              <option value="total_fixe_2ans">TotalEnergies — Fixe 2 ans</option>
+            </optgroup>
+            <optgroup label="── OHM Énergie ──">
+              <option value="ohm_extra_eco">OHM Énergie — Extra Eco Base</option>
+              <option value="ohm_hchp">OHM Énergie — Extra Eco HC/HP</option>
+            </optgroup>
+            <optgroup label="── Mint Énergie ──">
+              <option value="mint_base">Mint Énergie — Online & Green Base</option>
+              <option value="mint_hchp">Mint Énergie — Online & Green HC/HP</option>
+            </optgroup>
+            <optgroup label="── Primeo Énergie ──">
+              <option value="primeo_confort">Primeo — Confort+ Base</option>
+            </optgroup>
+            <optgroup label="── Octopus Energy ──">
+              <option value="octopus_go">Octopus Energy — Octopus Go HC/HP</option>
+              <option value="octopus_intelligent">Octopus Energy — Intelligent Octopus</option>
+              <option value="octopus_drive">Octopus Energy — Drive Pack</option>
+            </optgroup>
+            <optgroup label="── Autres ──">
+              <option value="ekwateur_hchp">ekWateur — Liberté HC/HP</option>
+              <option value="ilek_base">Ilek — Électricité locale Base</option>
+              <option value="eni_agile">Eni (Plenitude) — Agile (Tempo-like)</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Puissance souscrite (kVA)</label>
+          <select id="puissance">
+            <option value="3">3 kVA</option>
+            <option value="6" selected>6 kVA</option>
+            <option value="9">9 kVA</option>
+            <option value="12">12 kVA</option>
+            <option value="15">15 kVA</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="field-group">
+          <label>Consommation annuelle du foyer (kWh) — hors VE</label>
+          <div class="range-val" id="conso-val">6 000 kWh</div>
+          <input type="range" id="conso-total" min="1000" max="30000" step="100" value="6000"
+            oninput="document.getElementById('conso-val').textContent=parseInt(this.value).toLocaleString('fr')+' kWh'">
+          <div class="info-chips">
+            <div class="chip">Appartement 50m² ≈ 4 500 kWh</div>
+            <div class="chip">Maison 100m² ≈ 8 000 kWh</div>
+            <div class="chip">Tout élec. ≈ 12 000+ kWh</div>
+          </div>
+        </div>
+        <div id="hchp-section">
+          <div class="divider"></div>
+          <div class="field-group">
+            <label>Dont consommation Heures Creuses (kWh)</label>
+            <input type="number" id="conso-hc" value="2000" min="0" placeholder="ex: 2000">
+          </div>
+          <div class="field-group">
+            <label>Dont consommation Heures Pleines (kWh)</label>
+            <input type="number" id="conso-hp" value="4000" min="0" placeholder="ex: 4000">
+          </div>
+          <div class="alert info" style="margin-top:0;">
+            <span>ℹ️</span><span>Ces valeurs figurent sur votre facture annuelle EDF/fournisseur ou sur votre espace Enedis.</span>
+          </div>
+        </div>
+        <div class="alert info" id="alert-conso-base">
+          <span>ℹ️</span><span>Consommation totale disponible sur votre facture annuelle ou espace client Enedis.</span>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goStep(2)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- PANEL 2 -->
+  <div class="panel" id="panel-2">
+    <div class="section-title">Chauffage & eau chaude</div>
+    <div class="section-sub">Ces informations évaluent la compatibilité avec certains contrats dynamiques (Tempo, EJP) et les risques associés.</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="field-group">
+          <label>Mode de chauffage principal</label>
+          <div class="radio-cards">
+            <label class="radio-card"><input type="radio" name="chauffage" value="elec_direct" checked onchange="checkChauffage()"><div class="radio-card-inner"><span class="ico">🔌</span><span class="lbl">Élec. direct</span></div></label>
+            <label class="radio-card"><input type="radio" name="chauffage" value="pac" onchange="checkChauffage()"><div class="radio-card-inner"><span class="ico">🌡️</span><span class="lbl">PAC</span></div></label>
+            <label class="radio-card"><input type="radio" name="chauffage" value="gaz" onchange="checkChauffage()"><div class="radio-card-inner"><span class="ico">🔥</span><span class="lbl">Gaz</span></div></label>
+            <label class="radio-card"><input type="radio" name="chauffage" value="fioul" onchange="checkChauffage()"><div class="radio-card-inner"><span class="ico">🛢️</span><span class="lbl">Fioul</span></div></label>
+            <label class="radio-card"><input type="radio" name="chauffage" value="bois" onchange="checkChauffage()"><div class="radio-card-inner"><span class="ico">🪵</span><span class="lbl">Bois/Pellet</span></div></label>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="field-group">
+          <label>Production eau chaude sanitaire (ECS)</label>
+          <div class="radio-cards">
+            <label class="radio-card"><input type="radio" name="ecs" value="elec_chauffe_eau" checked onchange="checkChauffage()"><div class="radio-card-inner"><span class="ico">🚿</span><span class="lbl">Chauffe-eau élec.</span></div></label>
+            <label class="radio-card"><input type="radio" name="ecs" value="cumulus_thermo" onchange="checkChauffage()"><div class="radio-card-inner"><span class="ico">♻️</span><span class="lbl">Thermo-dyn.</span></div></label>
+            <label class="radio-card"><input type="radio" name="ecs" value="gaz_ecs" onchange="checkChauffage()"><div class="radio-card-inner"><span class="ico">🔥</span><span class="lbl">Gaz</span></div></label>
+            <label class="radio-card"><input type="radio" name="ecs" value="solaire" onchange="checkChauffage()"><div class="radio-card-inner"><span class="ico">☀️</span><span class="lbl">Solaire</span></div></label>
+          </div>
+        </div>
+        <div id="alert-chauffage-elec" class="alert warning" style="display:none;">
+          ⚠️ Avec un chauffage ou ECS électrique, <strong>Tempo / EJP</strong> peut générer des surcoûts importants les jours rouges en hiver. Ces offres seront signalées comme risquées.
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(1)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- PANEL 3 -->
+  <div class="panel" id="panel-3">
+    <div class="section-title">Votre véhicule électrique</div>
+    <div class="section-sub">Ces données calculent la consommation liée à la recharge et identifient les offres VE les plus avantageuses.</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="field-group">
+          <label>Consommation du véhicule (kWh / 100 km)</label>
+          <div class="range-val" id="conso-ve-val">17,0 kWh / 100 km</div>
+          <input type="range" id="conso-ve" min="10" max="30" step="0.5" value="17"
+            oninput="document.getElementById('conso-ve-val').textContent=parseFloat(this.value).toFixed(1)+' kWh / 100 km';updateKmEstim()">
+          <div class="info-chips">
+            <div class="chip">Citadine ≈ 13–16</div>
+            <div class="chip">Berline ≈ 16–19</div>
+            <div class="chip">SUV ≈ 19–24</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Kilométrage quotidien moyen</label>
+          <div class="range-val" id="km-jour-val">40 km / jour</div>
+          <input type="range" id="km-jour" min="5" max="300" step="5" value="40"
+            oninput="document.getElementById('km-jour-val').textContent=this.value+' km / jour';updateKmEstim()">
+        </div>
+        <div class="alert info">ℹ️ Consommation annuelle VE estimée : <strong id="conso-ve-annuelle">2 482 kWh</strong></div>
+      </div>
+      <div class="card">
+        <div class="field-group">
+          <label>Habitudes de recharge à domicile</label>
+          <div class="radio-cards" style="grid-template-columns:1fr 1fr;">
+            <label class="radio-card"><input type="radio" name="recharge-hab" value="nuit" checked><div class="radio-card-inner"><span class="ico">🌙</span><span class="lbl">La nuit (HC)</span></div></label>
+            <label class="radio-card"><input type="radio" name="recharge-hab" value="jour"><div class="radio-card-inner"><span class="ico">☀️</span><span class="lbl">En journée</span></div></label>
+            <label class="radio-card"><input type="radio" name="recharge-hab" value="mixte"><div class="radio-card-inner"><span class="ico">🔄</span><span class="lbl">Mixte</span></div></label>
+            <label class="radio-card"><input type="radio" name="recharge-hab" value="intelligent"><div class="radio-card-inner"><span class="ico">🤖</span><span class="lbl">Pilotée auto</span></div></label>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Borne connectée & pilotable (requis pour Intelligent Octopus)</label>
+          <div class="radio-cards" style="grid-template-columns:1fr 1fr;">
+            <label class="radio-card"><input type="radio" name="borne-smart" value="oui"><div class="radio-card-inner"><span class="ico">📱</span><span class="lbl">Oui</span></div></label>
+            <label class="radio-card"><input type="radio" name="borne-smart" value="non" checked><div class="radio-card-inner"><span class="ico">🔌</span><span class="lbl">Non / Basique</span></div></label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- PANEL 4 -->
+  <div class="panel" id="panel-4">
+    <div class="section-title">Devis d'installation IRVE</div>
+    <div class="section-sub">Ces données permettent de calculer le retour sur investissement de la borne.</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="field-group">
+          <label>Coût total du devis installation (€ TTC)</label>
+          <input type="number" id="cout-borne" value="1500" min="500" placeholder="ex: 1500">
+          <div class="info-chips" style="margin-top:8px;">
+            <div class="chip">Borne 7 kW ≈ 800–1 500 €</div>
+            <div class="chip">Borne 11 kW ≈ 1 200–2 500 €</div>
+            <div class="chip">Borne 22 kW ≈ 1 500–3 500 €</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Prime ADVENIR déjà déduite du devis ?</label>
+          <div class="radio-cards" style="grid-template-columns:1fr 1fr;">
+            <label class="radio-card"><input type="radio" name="advenir" value="oui"><div class="radio-card-inner"><span class="ico">✅</span><span class="lbl">Oui</span></div></label>
+            <label class="radio-card"><input type="radio" name="advenir" value="non" checked><div class="radio-card-inner"><span class="ico">❌</span><span class="lbl">Non</span></div></label>
+          </div>
+          <div id="advenir-info" class="alert info">ℹ️ La prime ADVENIR peut atteindre <strong>300 €</strong> en maison individuelle — elle sera déduite du coût net.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="field-group">
+          <label>Objectif de retour sur investissement</label>
+          <div class="range-val" id="roi-dur-val">5 ans</div>
+          <input type="range" id="roi-duree" min="1" max="10" step="1" value="5"
+            oninput="document.getElementById('roi-dur-val').textContent=this.value+' an'+(this.value>1?'s':'')">
+        </div>
+        <div class="field-group">
+          <label>Prix du carburant actuel (€/L)</label>
+          <input type="number" id="cout-carburant" value="1.75" step="0.01" min="0.5" placeholder="1.75">
+          <div class="info-chips" style="margin-top:7px;">
+            <div class="chip">SP95 ≈ 1,65–1,85 €/L</div>
+            <div class="chip">Diesel ≈ 1,60–1,75 €/L</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Conso. véhicule thermique précédent (L/100km)</label>
+          <input type="number" id="conso-thermique" value="7" step="0.1" min="3" placeholder="ex: 7">
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(3)">← Retour</button>
+      <button class="btn btn-primary" onclick="lancerAnalyse()">⚡ Lancer l'analyse</button>
+    </div>
+  </div>
+
+  <!-- PANEL 5 -->
+  <div class="panel" id="panel-5">
+    <div id="spinner-results" class="spinner active">
+      <div class="spin-icon">⚡</div>
+      <p style="color:var(--gris);margin-top:12px;">Calcul en cours…</p>
+    </div>
+    <div id="results">
+      <div class="result-hero">
+        <div class="winner-tag">🏆 Meilleure offre</div>
+        <div class="winner-name" id="res-fournisseur">—</div>
+        <div class="winner-offer" id="res-offre">—</div>
+        <div class="winner-metrics">
+          <div class="metric"><div class="metric-val green" id="res-facture">—</div><div class="metric-label">Facture totale / an</div></div>
+          <div class="metric"><div class="metric-val" id="res-economie">—</div><div class="metric-label">vs contrat actuel + VE</div></div>
+          <div class="metric"><div class="metric-val blue" id="res-roi">—</div><div class="metric-label">ROI borne</div></div>
+          <div class="metric"><div class="metric-val" id="res-100km">—</div><div class="metric-label">Coût / 100 km rechargé</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:22px;">
+        <div style="font-family:'Syne';font-size:14px;font-weight:700;color:var(--blanc);margin-bottom:10px;">💡 Analyse & recommandations</div>
+        <div id="res-conseil" style="font-size:13px;line-height:1.75;color:var(--texte);"></div>
+      </div>
+
+      <div class="section-title" style="margin-bottom:14px;">Classement complet des offres</div>
+      <div class="rank-list" id="rank-list"></div>
+
+      <div class="roi-card">
+        <div class="roi-title">📊 Retour sur investissement de la borne</div>
+        <div id="roi-details"></div>
+      </div>
+
+      <div class="card" style="margin-top:22px;">
+        <div class="roi-title">📋 Tableau comparatif détaillé</div>
+        <div style="overflow-x:auto;">
+          <table class="compare-table" id="compare-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Fournisseur</th>
+                <th>Offre</th>
+                <th>Abo. / an</th>
+                <th>kWh HC</th>
+                <th>kWh HP</th>
+                <th>kWh Base</th>
+                <th>Facture / an</th>
+                <th>Diff. vs actuel</th>
+                <th>€ / 100 km VE</th>
+              </tr>
+            </thead>
+            <tbody id="compare-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-top:28px;">
+        <button class="btn btn-secondary" onclick="goStep(1)">↺ Nouvelle étude</button>
+        <button class="btn btn-pdf" id="btn-pdf" onclick="exportPDF()">📄 Exporter PDF</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ===== BASE TARIFAIRE (mai 2026) =====
+const TARIFS_BASE = {
+  date: "Mai 2026",
+  fournisseurs: [
+    // EDF
+    { id:"edf_base", nom:"EDF", offre:"Tarif Bleu — Base", type:"base",
+      abo:187.80, kwh_base:0.1940, kwh_hc:null, kwh_hp:null,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["Tarif réglementé","Référence"] },
+    { id:"edf_hchp", nom:"EDF", offre:"Tarif Bleu — HP/HC", type:"hchp",
+      abo:188.89, kwh_base:null, kwh_hc:0.1579, kwh_hp:0.2065,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["HC/HP","Tarif réglementé"] },
+    { id:"edf_tempo", nom:"EDF", offre:"Option Tempo", type:"tempo",
+      abo:174.72, kwh_base:null, kwh_hc:null, kwh_hp:null,
+      tempo:true, vert:false, ve_bonus:false,
+      tempo_prix:{ bleu_hc:0.1325, bleu_hp:0.1749, blanc_hc:0.1487, blanc_hp:0.2335, rouge_hc:0.1727, rouge_hp:0.7060 },
+      tempo_jours:{ rouge:22, blanc:43, bleu:300 },
+      tags:["Tempo","Variable","Eco jours bleus"] },
+    { id:"edf_ejp", nom:"EDF", offre:"Option EJP", type:"ejp",
+      abo:189.00, kwh_base:null, kwh_hc:null, kwh_hp:null,
+      kwh_ejp_normal:0.1762, kwh_ejp_pointe:0.6680,
+      ejp_jours_pointe:22,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["EJP","22 jours pointe","Anciens abonnés"] },
+    { id:"edf_zen_fixe", nom:"EDF", offre:"Zen Fixe (marché)", type:"base",
+      abo:187.80, kwh_base:0.1908, kwh_hc:null, kwh_hp:null,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["Prix fixe 2 ans","-1,6% vs TRV"] },
+    // Engie
+    { id:"engie_base", nom:"Engie", offre:"Elec Online Fixe — Base", type:"base",
+      abo:183.60, kwh_base:0.1902, kwh_hc:null, kwh_hp:null,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["Prix fixe 1 an"] },
+    { id:"engie_hchp", nom:"Engie", offre:"Elec Online Fixe — HC/HP", type:"hchp",
+      abo:185.00, kwh_base:null, kwh_hc:0.1540, kwh_hp:0.2010,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["HC/HP","Prix fixe"] },
+    // TotalEnergies
+    { id:"total_heures_eco", nom:"TotalEnergies", offre:"Heures Eco — Base", type:"base",
+      abo:187.80, kwh_base:0.1783, kwh_hc:null, kwh_hp:null,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["-8% vs TRV","Indexé marché"] },
+    { id:"total_hchp", nom:"TotalEnergies", offre:"Heures Eco — HC/HP", type:"hchp",
+      abo:187.80, kwh_base:null, kwh_hc:0.1490, kwh_hp:0.1940,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["HC/HP","-10% HC vs TRV"] },
+    { id:"total_heures_eco_plus", nom:"TotalEnergies", offre:"Heures Eco+ (Tempo-like)", type:"tempo_like",
+      abo:182.00, kwh_base:null, kwh_hc:null, kwh_hp:null,
+      // 4 niveaux : Eco HC/HP + Peak HC/HP (20 jours pointe)
+      kwh_eco_hc:0.1325, kwh_eco_hp:0.1720,
+      kwh_peak_hc:0.1487, kwh_peak_hp:0.4800,
+      jours_peak:20, jours_eco:345,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["Tempo-like","20j pointe/an","Variable"] },
+    { id:"total_fixe_2ans", nom:"TotalEnergies", offre:"Fixe 2 ans", type:"base",
+      abo:187.80, kwh_base:0.1908, kwh_hc:null, kwh_hp:null,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["Prix garanti 2 ans","-1,7% vs TRV"] },
+    // OHM
+    { id:"ohm_extra_eco", nom:"OHM Énergie", offre:"Extra Eco — Base", type:"base",
+      abo:174.00, kwh_base:0.1703, kwh_hc:null, kwh_hp:null,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["Abonnement le + bas","-12% vs TRV"] },
+    { id:"ohm_hchp", nom:"OHM Énergie", offre:"Extra Eco — HC/HP", type:"hchp",
+      abo:174.00, kwh_base:null, kwh_hc:0.1410, kwh_hp:0.1880,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["HC/HP","Très compétitif"] },
+    // Mint
+    { id:"mint_base", nom:"Mint Énergie", offre:"Online & Green — Base", type:"base",
+      abo:179.40, kwh_base:0.1767, kwh_hc:null, kwh_hp:null,
+      tempo:false, vert:true, ve_bonus:false,
+      tags:["-9% vs TRV","100% renouvelable"] },
+    { id:"mint_hchp", nom:"Mint Énergie", offre:"Online & Green — HC/HP", type:"hchp",
+      abo:179.40, kwh_base:null, kwh_hc:0.1470, kwh_hp:0.1920,
+      tempo:false, vert:true, ve_bonus:false,
+      tags:["HC/HP","Vert"] },
+    // Primeo
+    { id:"primeo_confort", nom:"Primeo Énergie", offre:"Confort+", type:"base",
+      abo:180.00, kwh_base:0.1625, kwh_hc:null, kwh_hp:null,
+      tempo:false, vert:true, ve_bonus:false,
+      tags:["kWh le + bas du marché","-16% vs TRV"] },
+    // Octopus
+    { id:"octopus_go", nom:"Octopus Energy", offre:"Octopus Go", type:"hchp",
+      abo:187.80, kwh_base:null, kwh_hc:0.1272, kwh_hp:0.2150,
+      tempo:false, vert:true, ve_bonus:true,
+      tags:["Spécial VE","HC -20%","VertVolt"] },
+    { id:"octopus_intelligent", nom:"Octopus Energy", offre:"Intelligent Octopus", type:"hchp",
+      abo:187.80, kwh_base:null, kwh_hc:0.1580, kwh_hp:0.2060,
+      kwh_ve_pilote:0.1460,
+      tempo:false, vert:true, ve_bonus:true, ve_bonus_montant:0.12,
+      tags:["Borne connectée requise","Bonus VE piloté","VertVolt"] },
+    { id:"octopus_drive", nom:"Octopus Energy", offre:"Drive Pack", type:"drive",
+      abo:187.80, kwh_base:0.1909, kwh_hc:null, kwh_hp:null,
+      drive_forfait:49.90,
+      tempo:false, vert:true, ve_bonus:true,
+      tags:["Recharge VE illimitée","Forfait 49,90€/mois",">1000km/mois"] },
+    // Autres
+    { id:"ekwateur_hchp", nom:"ekWateur", offre:"Liberté HC/HP", type:"hchp",
+      abo:180.00, kwh_base:null, kwh_hc:0.1500, kwh_hp:0.1960,
+      tempo:false, vert:true, ve_bonus:false,
+      tags:["100% renouvelable","Français"] },
+    { id:"ilek_base", nom:"Ilek", offre:"Électricité locale", type:"base",
+      abo:182.00, kwh_base:0.1830, kwh_hc:null, kwh_hp:null,
+      tempo:false, vert:true, ve_bonus:false,
+      tags:["Énergie locale tracée","Vert"] },
+    { id:"eni_agile", nom:"Eni (Plenitude)", offre:"Agile (Tempo-like)", type:"tempo_like",
+      abo:178.00, kwh_base:null, kwh_hc:null, kwh_hp:null,
+      kwh_eco_hc:0.1340, kwh_eco_hp:0.1730,
+      kwh_peak_hc:0.1510, kwh_peak_hp:0.5200,
+      jours_peak:22, jours_eco:343,
+      tempo:false, vert:false, ve_bonus:false,
+      tags:["Tempo-like","Variable","22j pointe/an"] },
+  ]
+};
+
+// ===== UTILITAIRES =====
+function goStep(n) {
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i+1===n));
+  document.querySelectorAll('.step').forEach((s,i)=>{s.classList.toggle('active',i+1===n);s.classList.toggle('done',i+1<n);});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateKmEstim() {
+  const cve=parseFloat(document.getElementById('conso-ve').value);
+  const km=parseInt(document.getElementById('km-jour').value);
+  document.getElementById('conso-ve-annuelle').textContent=Math.round(cve*km*365/100).toLocaleString('fr')+' kWh';
+}
+
+function getAdvenir() {
+  return document.querySelector('input[name="advenir"]:checked').value==='non'?300:0;
+}
+
+// Détecte si le fournisseur sélectionné est HC/HP → affiche les champs HC/HP
+const HCHP_IDS = ['edf_hchp','engie_hchp','total_hchp','ohm_hchp','mint_hchp','octopus_go','octopus_intelligent','ekwateur_hchp'];
+
+function onFournisseurChange() {
+  const id = document.getElementById('fournisseur-actuel').value;
+  const isHCHP = HCHP_IDS.includes(id);
+  document.getElementById('hchp-section').classList.toggle('visible', isHCHP);
+  document.getElementById('alert-conso-base').style.display = isHCHP ? 'none' : 'flex';
+}
+
+function checkChauffage() {
+  const ch = document.querySelector('input[name="chauffage"]:checked').value;
+  const ecs = document.querySelector('input[name="ecs"]:checked').value;
+  const loud = ch==='elec_direct'||ch==='pac'||ecs==='elec_chauffe_eau'||ecs==='cumulus_thermo';
+  document.getElementById('alert-chauffage-elec').style.display = loud?'flex':'none';
+}
+
+// ===== CALCUL FACTURE =====
+function calculerFacture(f, params) {
+  const {consoTotal, consoHC, consoHP, consoVE, rechargeHabitude, borneSmart} = params;
+  const abo = f.abo;
+
+  // Répartition VE selon habitude
+  let veHC=0, veHP=0;
+  if (rechargeHabitude==='nuit'||rechargeHabitude==='intelligent') veHC=consoVE;
+  else if (rechargeHabitude==='mixte') { veHC=consoVE*0.6; veHP=consoVE*0.4; }
+  else veHP=consoVE;
+
+  if (f.type==='base') {
+    return Math.round(abo + (consoTotal+consoVE)*f.kwh_base);
+  }
+  if (f.type==='hchp') {
+    const hcTotal=consoHC+veHC, hpTotal=consoHP+veHP;
+    if (f.id==='octopus_intelligent'&&borneSmart==='oui') {
+      const tarifVE=Math.max(0, f.kwh_hc - f.ve_bonus_montant);
+      return Math.round(abo + consoHC*f.kwh_hc + consoHP*f.kwh_hp + consoVE*tarifVE);
+    }
+    return Math.round(abo + hcTotal*f.kwh_hc + hpTotal*f.kwh_hp);
+  }
+  if (f.type==='tempo') {
+    const j=f.tempo_jours, p=f.tempo_prix, tot=365;
+    const fHC=8/24, fHP=16/24;
+    const kj=consoTotal/tot;
+    const coutFoyer = j.bleu*kj*(fHC*p.bleu_hc+fHP*p.bleu_hp)
+                    + j.blanc*kj*(fHC*p.blanc_hc+fHP*p.blanc_hp)
+                    + j.rouge*kj*(fHC*p.rouge_hc+fHP*p.rouge_hp);
+    let coutVE;
+    if (rechargeHabitude==='nuit'||rechargeHabitude==='intelligent') {
+      const hcMoy=(j.bleu*p.bleu_hc+j.blanc*p.blanc_hc+j.rouge*p.rouge_hc)/tot;
+      coutVE=consoVE*hcMoy;
+    } else if (rechargeHabitude==='mixte') {
+      const hcMoy=(j.bleu*p.bleu_hc+j.blanc*p.blanc_hc+j.rouge*p.rouge_hc)/tot;
+      const hpMoy=(j.bleu*p.bleu_hp+j.blanc*p.blanc_hp+j.rouge*p.rouge_hp)/tot;
+      coutVE=consoVE*(0.6*hcMoy+0.4*hpMoy);
+    } else {
+      const hpMoy=(j.bleu*p.bleu_hp+j.blanc*p.blanc_hp+j.rouge*p.rouge_hp)/tot;
+      coutVE=consoVE*hpMoy;
+    }
+    return Math.round(abo+coutFoyer+coutVE);
+  }
+  if (f.type==='ejp') {
+    // 22 jours pointe HP uniquement, 343 jours normaux
+    const fHC=8/24, fHP=16/24;
+    const kj=consoTotal/365;
+    const coutFoyer = f.ejp_jours_pointe*kj*f.kwh_ejp_pointe
+                    + (365-f.ejp_jours_pointe)*kj*f.kwh_ejp_normal;
+    const tarifVE = rechargeHabitude==='nuit'||rechargeHabitude==='intelligent'
+      ? f.kwh_ejp_normal*0.85  // HC ~15% moins cher que normal
+      : f.kwh_ejp_normal;
+    return Math.round(abo+coutFoyer+consoVE*tarifVE);
+  }
+  if (f.type==='tempo_like') {
+    const fHC=8/24, fHP=16/24;
+    const tot=365, kj=consoTotal/tot;
+    const coutFoyer = f.jours_peak*kj*(fHC*f.kwh_peak_hc+fHP*f.kwh_peak_hp)
+                    + f.jours_eco*kj*(fHC*f.kwh_eco_hc+fHP*f.kwh_eco_hp);
+    let coutVE;
+    const hcMoy=(f.jours_peak*f.kwh_peak_hc+f.jours_eco*f.kwh_eco_hc)/tot;
+    const hpMoy=(f.jours_peak*f.kwh_peak_hp+f.jours_eco*f.kwh_eco_hp)/tot;
+    if (rechargeHabitude==='nuit'||rechargeHabitude==='intelligent') coutVE=consoVE*hcMoy;
+    else if (rechargeHabitude==='mixte') coutVE=consoVE*(0.6*hcMoy+0.4*hpMoy);
+    else coutVE=consoVE*hpMoy;
+    return Math.round(abo+coutFoyer+coutVE);
+  }
+  if (f.type==='drive') {
+    return Math.round(abo + consoTotal*f.kwh_base + f.drive_forfait*12);
+  }
+  return 0;
+}
+
+function getParams() {
+  const consoTotal=parseInt(document.getElementById('conso-total').value);
+  const fId=document.getElementById('fournisseur-actuel').value;
+  const isHCHP=HCHP_IDS.includes(fId);
+  const consoHC=isHCHP?(parseInt(document.getElementById('conso-hc').value)||0):Math.round(consoTotal*0.35);
+  const consoHP=isHCHP?(parseInt(document.getElementById('conso-hp').value)||0):Math.round(consoTotal*0.65);
+  const consoVE=Math.round(parseFloat(document.getElementById('conso-ve').value)*parseInt(document.getElementById('km-jour').value)*365/100);
+  return {
+    consoTotal, consoHC, consoHP, consoVE,
+    rechargeHabitude:document.querySelector('input[name="recharge-hab"]:checked').value,
+    borneSmart:document.querySelector('input[name="borne-smart"]:checked').value,
+    chauffage:document.querySelector('input[name="chauffage"]:checked').value,
+    ecs:document.querySelector('input[name="ecs"]:checked').value,
+    km:parseInt(document.getElementById('km-jour').value),
+    cveKwh:parseFloat(document.getElementById('conso-ve').value),
+    coutBorne:parseFloat(document.getElementById('cout-borne').value)-getAdvenir(),
+    coutCarburant:parseFloat(document.getElementById('cout-carburant').value),
+    consoThermique:parseFloat(document.getElementById('conso-thermique').value),
+    roiDuree:parseInt(document.getElementById('roi-duree').value),
+    fournisseurActuelId: fId
+  };
+}
+
+// Tarif VE effectif selon type d'offre + habitude
+function tarifVEEffectif(f, rechargeHabitude) {
+  if (f.type==='drive') return null; // forfait
+  if (f.type==='hchp') {
+    if (f.id==='octopus_intelligent') return Math.max(0, f.kwh_hc - (f.ve_bonus_montant||0));
+    if (rechargeHabitude==='nuit'||rechargeHabitude==='intelligent') return f.kwh_hc;
+    if (rechargeHabitude==='mixte') return f.kwh_hc*0.6+f.kwh_hp*0.4;
+    return f.kwh_hp;
+  }
+  if (f.type==='tempo') {
+    const j=f.tempo_jours, p=f.tempo_prix, tot=365;
+    if (rechargeHabitude==='nuit'||rechargeHabitude==='intelligent')
+      return (j.bleu*p.bleu_hc+j.blanc*p.blanc_hc+j.rouge*p.rouge_hc)/tot;
+    const hpMoy=(j.bleu*p.bleu_hp+j.blanc*p.blanc_hp+j.rouge*p.rouge_hp)/tot;
+    if (rechargeHabitude==='mixte') return ((j.bleu*p.bleu_hc+j.blanc*p.blanc_hc+j.rouge*p.rouge_hc)/tot)*0.6+hpMoy*0.4;
+    return hpMoy;
+  }
+  if (f.type==='tempo_like') {
+    const tot=365;
+    const hcMoy=(f.jours_peak*f.kwh_peak_hc+f.jours_eco*f.kwh_eco_hc)/tot;
+    const hpMoy=(f.jours_peak*f.kwh_peak_hp+f.jours_eco*f.kwh_eco_hp)/tot;
+    if (rechargeHabitude==='nuit'||rechargeHabitude==='intelligent') return hcMoy;
+    if (rechargeHabitude==='mixte') return hcMoy*0.6+hpMoy*0.4;
+    return hpMoy;
+  }
+  if (f.type==='ejp') return f.kwh_ejp_normal;
+  return f.kwh_base;
+}
+
+// ===== MISE À JOUR TARIFS DEPUIS GitHub (silencieuse) =====
+// URL à personnaliser après déploiement : remplace TON-PSEUDO par ton nom GitHub
+const TARIFS_JSON_URL = 'https://raw.githubusercontent.com/TON-PSEUDO/irve-configurateur/main/tarifs.json';
+
+async function mettreAJourTarifs() {
+  try {
+    const resp = await fetch(TARIFS_JSON_URL, { cache: 'no-store' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const t = await resp.json();
+
+    const F = TARIFS_BASE.fournisseurs;
+    const set = (id, field, val) => { const f = F.find(x => x.id === id); if (f && val != null) f[field] = val; };
+
+    // EDF
+    set('edf_base',    'kwh_base', t.edf?.base?.kwh);
+    set('edf_base',    'abo',      t.edf?.base?.abo_6kva);
+    set('edf_hchp',    'kwh_hc',   t.edf?.hchp?.kwh_hc);
+    set('edf_hchp',    'kwh_hp',   t.edf?.hchp?.kwh_hp);
+    set('edf_hchp',    'abo',      t.edf?.hchp?.abo_6kva);
+    set('edf_zen_fixe','kwh_base', t.edf?.zen_fixe?.kwh);
+    set('edf_zen_fixe','abo',      t.edf?.zen_fixe?.abo_6kva);
+    // Tempo
+    const ft = F.find(x => x.id === 'edf_tempo');
+    if (ft && t.edf?.tempo) {
+      ft.abo = t.edf.tempo.abo_6kva;
+      ft.tempo_prix = {
+        bleu_hc: t.edf.tempo.bleu_hc, bleu_hp: t.edf.tempo.bleu_hp,
+        blanc_hc: t.edf.tempo.blanc_hc, blanc_hp: t.edf.tempo.blanc_hp,
+        rouge_hc: t.edf.tempo.rouge_hc, rouge_hp: t.edf.tempo.rouge_hp
+      };
+    }
+    // EJP
+    const fe = F.find(x => x.id === 'edf_ejp');
+    if (fe && t.edf?.ejp) {
+      fe.abo = t.edf.ejp.abo_6kva;
+      fe.kwh_ejp_normal = t.edf.ejp.kwh_normal;
+      fe.kwh_ejp_pointe = t.edf.ejp.kwh_pointe;
+    }
+    // Engie
+    set('engie_base', 'kwh_base', t.engie?.base?.kwh);
+    set('engie_base', 'abo',      t.engie?.base?.abo_6kva);
+    set('engie_hchp', 'kwh_hc',   t.engie?.hchp?.kwh_hc);
+    set('engie_hchp', 'kwh_hp',   t.engie?.hchp?.kwh_hp);
+    set('engie_hchp', 'abo',      t.engie?.hchp?.abo_6kva);
+    // TotalEnergies
+    set('total_heures_eco',  'kwh_base', t.totalenergies?.heures_eco_base?.kwh);
+    set('total_heures_eco',  'abo',      t.totalenergies?.heures_eco_base?.abo_6kva);
+    set('total_hchp',        'kwh_hc',   t.totalenergies?.heures_eco_hchp?.kwh_hc);
+    set('total_hchp',        'kwh_hp',   t.totalenergies?.heures_eco_hchp?.kwh_hp);
+    set('total_hchp',        'abo',      t.totalenergies?.heures_eco_hchp?.abo_6kva);
+    set('total_fixe_2ans',   'kwh_base', t.totalenergies?.fixe_2ans?.kwh);
+    set('total_fixe_2ans',   'abo',      t.totalenergies?.fixe_2ans?.abo_6kva);
+    const ftp = F.find(x => x.id === 'total_heures_eco_plus');
+    if (ftp && t.totalenergies?.heures_eco_plus) {
+      ftp.abo = t.totalenergies.heures_eco_plus.abo_6kva;
+      ftp.kwh_eco_hc = t.totalenergies.heures_eco_plus.eco_hc;
+      ftp.kwh_eco_hp = t.totalenergies.heures_eco_plus.eco_hp;
+      ftp.kwh_peak_hc = t.totalenergies.heures_eco_plus.peak_hc;
+      ftp.kwh_peak_hp = t.totalenergies.heures_eco_plus.peak_hp;
+    }
+    // OHM
+    set('ohm_extra_eco', 'kwh_base', t.ohm?.base?.kwh);
+    set('ohm_extra_eco', 'abo',      t.ohm?.base?.abo_6kva);
+    set('ohm_hchp',      'kwh_hc',   t.ohm?.hchp?.kwh_hc);
+    set('ohm_hchp',      'kwh_hp',   t.ohm?.hchp?.kwh_hp);
+    set('ohm_hchp',      'abo',      t.ohm?.hchp?.abo_6kva);
+    // Mint
+    set('mint_base', 'kwh_base', t.mint?.base?.kwh);
+    set('mint_base', 'abo',      t.mint?.base?.abo_6kva);
+    set('mint_hchp', 'kwh_hc',   t.mint?.hchp?.kwh_hc);
+    set('mint_hchp', 'kwh_hp',   t.mint?.hchp?.kwh_hp);
+    set('mint_hchp', 'abo',      t.mint?.hchp?.abo_6kva);
+    // Primeo
+    set('primeo_confort', 'kwh_base', t.primeo?.confort_plus?.kwh);
+    set('primeo_confort', 'abo',      t.primeo?.confort_plus?.abo_6kva);
+    // Octopus
+    set('octopus_go',          'kwh_hc',  t.octopus?.go?.kwh_hc);
+    set('octopus_go',          'kwh_hp',  t.octopus?.go?.kwh_hp);
+    set('octopus_go',          'abo',     t.octopus?.go?.abo_6kva);
+    set('octopus_intelligent', 'kwh_hc',  t.octopus?.intelligent?.kwh_hc);
+    set('octopus_intelligent', 'kwh_hp',  t.octopus?.intelligent?.kwh_hp);
+    set('octopus_intelligent', 'abo',     t.octopus?.intelligent?.abo_6kva);
+    set('octopus_drive',       'kwh_base',t.octopus?.drive_pack?.kwh);
+    set('octopus_drive',       'abo',     t.octopus?.drive_pack?.abo_6kva);
+    const fod = F.find(x => x.id === 'octopus_drive');
+    if (fod && t.octopus?.drive_pack?.forfait_ve) fod.drive_forfait = t.octopus.drive_pack.forfait_ve;
+    // ekWateur
+    set('ekwateur_hchp', 'kwh_hc', t.ekwateur?.hchp?.kwh_hc);
+    set('ekwateur_hchp', 'kwh_hp', t.ekwateur?.hchp?.kwh_hp);
+    set('ekwateur_hchp', 'abo',    t.ekwateur?.hchp?.abo_6kva);
+    // Ilek
+    set('ilek_base', 'kwh_base', t.ilek?.base?.kwh);
+    set('ilek_base', 'abo',      t.ilek?.base?.abo_6kva);
+    // Eni
+    const feni = F.find(x => x.id === 'eni_agile');
+    if (feni && t.eni?.agile) {
+      feni.abo = t.eni.agile.abo_6kva;
+      feni.kwh_eco_hc = t.eni.agile.eco_hc;
+      feni.kwh_eco_hp = t.eni.agile.eco_hp;
+      feni.kwh_peak_hc = t.eni.agile.peak_hc;
+      feni.kwh_peak_hp = t.eni.agile.peak_hp;
+    }
+
+    if (t.meta?.date_maj) {
+      document.getElementById('tarif-date').textContent = 'Mis à jour le ' + t.meta.date_maj;
+    }
+    console.log('✅ Tarifs chargés depuis GitHub :', t.meta?.date_maj);
+
+  } catch (e) {
+    // Silencieux : on garde les tarifs intégrés si le fetch échoue
+    console.warn('Tarifs GitHub non disponibles, utilisation des tarifs intégrés :', e.message);
+    document.getElementById('tarif-date').textContent = TARIFS_BASE.date + ' (intégrés)';
+  }
+}
+
+// ===== ANALYSE =====
+// Stockage global des résultats pour le PDF
+let _lastResultats=[], _lastParams=null, _lastFactActuelle=0;
+
+async function lancerAnalyse() {
+  const ov=document.getElementById('loading-overlay');
+  ov.classList.add('active');
+  document.getElementById('loading-step').textContent='Récupération des tarifs à jour…';
+  await mettreAJourTarifs();
+  document.getElementById('loading-step').textContent='Calcul de toutes les offres…';
+  await new Promise(r=>setTimeout(r,500));
+
+  goStep(5);
+  document.getElementById('spinner-results').classList.add('active');
+  document.getElementById('results').style.display='none';
+
+  const params=getParams();
+  await new Promise(r=>setTimeout(r,600));
+
+  const fActuel=TARIFS_BASE.fournisseurs.find(x=>x.id===params.fournisseurActuelId)||TARIFS_BASE.fournisseurs[0];
+  const factActuelleAvecVE=calculerFacture(fActuel,params);
+
+  const resultats=TARIFS_BASE.fournisseurs.map(f=>({
+    ...f, facture_totale:calculerFacture(f,params)
+  })).sort((a,b)=>a.facture_totale-b.facture_totale);
+
+  const isElecLoud=params.chauffage==='elec_direct'||params.chauffage==='pac'
+    ||params.ecs==='elec_chauffe_eau'||params.ecs==='cumulus_thermo';
+
+  resultats.forEach(r=>{
+    r.avertissements=[];
+    if(r.tempo&&isElecLoud) r.avertissements.push("⚠️ Risqué chauffage élec.");
+    if(r.type==='ejp'&&isElecLoud) r.avertissements.push("⚠️ Risqué chauffage élec.");
+    if(r.type==='tempo_like'&&isElecLoud) r.avertissements.push("⚠️ Risqué jours pointe");
+    if(r.id==='octopus_intelligent'&&params.borneSmart!=='oui') r.avertissements.push("🔌 Borne connectée requise");
+    if(r.id==='octopus_go'&&params.rechargeHabitude==='jour') r.avertissements.push("⚠️ HP majorée en journée");
+    if(r.id==='octopus_drive'&&params.km*30<1000) r.avertissements.push("💡 Rentable >1000km/mois");
+  });
+
+  _lastResultats=resultats;
+  _lastParams=params;
+  _lastFactActuelle=factActuelleAvecVE;
+
+  const top=resultats[0];
+  const tvE=tarifVEEffectif(top,params.rechargeHabitude);
+  const economieFournisseur=factActuelleAvecVE-top.facture_totale;
+  const economieThermique=params.km*365*params.consoThermique/100*params.coutCarburant;
+  const coutElecVE=top.type==='drive'?top.drive_forfait*12:(params.consoVE*(tvE||0.18));
+  const economieCarburant=economieThermique-coutElecVE;
+  const economieAnnuelle=Math.max(economieFournisseur+economieCarburant,1);
+  const roi=params.coutBorne/economieAnnuelle;
+
+  const cout100km=top.type==='drive'
+    ?((top.drive_forfait*12)/(params.km*365/100)).toFixed(2)
+    :(params.cveKwh*(tvE||0)).toFixed(2);
+
+  ov.classList.remove('active');
+  document.getElementById('spinner-results').classList.remove('active');
+  document.getElementById('results').style.display='block';
+
+  document.getElementById('res-fournisseur').textContent=top.nom;
+  document.getElementById('res-offre').textContent=top.offre;
+  document.getElementById('res-facture').textContent=top.facture_totale.toLocaleString('fr')+' €/an';
+  const econStr=(economieFournisseur>=0?'✅ ':'⚠️ ')+Math.abs(Math.round(economieFournisseur)).toLocaleString('fr')+' € '+(economieFournisseur>=0?'économisés/an':'de surcoût/an');
+  document.getElementById('res-economie').textContent=econStr;
+  document.getElementById('res-economie').style.color=economieFournisseur>=0?'var(--accent)':'var(--rouge)';
+  document.getElementById('res-roi').textContent=roi>0&&roi<50?roi.toFixed(1)+' ans':'> 10 ans';
+  document.getElementById('res-100km').textContent=cout100km+' €/100km';
+
+  await genererConseil(params,top,resultats,factActuelleAvecVE,roi);
+  renderRanking(resultats,factActuelleAvecVE,params);
+  renderROI(params,economieFournisseur,economieCarburant,economieAnnuelle);
+  renderTable(resultats,factActuelleAvecVE,params);
+}
+
+async function genererConseil(params,top,resultats,factActuelle,roi) {
+  const ctx=`Profil: chauffage=${params.chauffage}, ECS=${params.ecs}, recharge=${params.rechargeHabitude}, ${params.km}km/j, borne smart=${params.borneSmart}, foyer=${params.consoTotal}kWh/an, VE=${params.consoVE}kWh/an. Meilleure offre: ${top.nom} — ${top.offre} à ${top.facture_totale}€/an (${Math.round(factActuelle-top.facture_totale)}€ d'économie). ROI borne: ${roi.toFixed(1)}ans.`;
+  try {
+    const r=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",max_tokens:450,
+        messages:[{role:"user",content:`Expert énergie IRVE France. Génère une analyse courte (4-5 phrases, HTML simple avec <strong> et <br>) pour ce profil: ${ctx}. Explique pourquoi cette offre est recommandée, les points d'attention et un conseil actionnable. Réponds uniquement avec du HTML simple, sans balises de structure.`}]
+      })
+    });
+    if(r.ok){const d=await r.json();const t=d.content.filter(b=>b.type==='text').map(b=>b.text).join('');document.getElementById('res-conseil').innerHTML=t;return;}
+  } catch(e){}
+  // Fallback
+  let c=`L'offre <strong>${top.nom} — ${top.offre}</strong> est la plus adaptée à votre profil avec une facture annuelle estimée à <strong>${top.facture_totale.toLocaleString('fr')} €</strong>.`;
+  if(top.ve_bonus) c+=` Cette offre inclut un avantage spécifique pour la recharge de véhicule électrique.`;
+  if((top.tempo||top.type==='tempo_like')&&(params.chauffage==='elec_direct'||params.chauffage==='pac')) c+=` <strong>⚠️ Attention :</strong> avec un chauffage électrique, surveillez attentivement les jours à tarif élevé.`;
+  if(params.rechargeHabitude==='nuit') c+=` Votre habitude de recharge nocturne est idéale pour maximiser les économies sur les offres HC/HP.`;
+  document.getElementById('res-conseil').innerHTML=c;
+}
+
+function renderRanking(resultats,factActuelle,params) {
+  const el=document.getElementById('rank-list');
+  el.innerHTML='';
+  resultats.slice(0,8).forEach((r,i)=>{
+    const diff=r.facture_totale-factActuelle;
+    const diffStr=(diff>=0?'+':'')+Math.round(diff).toLocaleString('fr')+' €/an';
+    const tags=[...r.tags.slice(0,2)];
+    if(r.vert) tags.push('🌿 Vert');
+    if(r.avertissements.length) tags.push(r.avertissements[0]);
+    el.innerHTML+=`<div class="rank-item rank-${i+1}">
+      <div class="rank-pos">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+      <div class="rank-info">
+        <div class="rank-provider">${r.nom}</div>
+        <div class="rank-offre">${r.offre}</div>
+        <div class="rank-tags">${tags.map(t=>`<span class="tag ${t.includes('Vert')||t.includes('%')||t.includes('bas')?'green':t.includes('⚠️')||t.includes('Risqué')?'red':t.includes('VE')||t.includes('Bonus')?'blue':''}">${t}</span>`).join('')}</div>
+      </div>
+      <div class="rank-price">
+        <div class="price-val">${r.facture_totale.toLocaleString('fr')} €/an</div>
+        <div class="price-diff ${diff<0?'better':'worse'}">${diffStr}</div>
+      </div>
+    </div>`;
+  });
+}
+
+function renderROI(params,economieFournisseur,economieCarburant,economieAnnuelle) {
+  const ans=params.coutBorne/Math.max(economieAnnuelle,1);
+  const pctBar=Math.min(100,Math.round((params.roiDuree/ans)*100));
+  document.getElementById('roi-details').innerHTML=`
+    <div class="grid-2" style="gap:16px;margin-bottom:16px;">
+      <div><div style="font-size:11px;color:var(--gris);text-transform:uppercase;margin-bottom:4px;">Coût net borne</div>
+        <div style="font-family:'Syne';font-size:20px;font-weight:700;color:var(--blanc);">${Math.round(params.coutBorne).toLocaleString('fr')} €</div>
+        <div style="font-size:11px;color:var(--gris);">après déduction ADVENIR si applicable</div></div>
+      <div><div style="font-size:11px;color:var(--gris);text-transform:uppercase;margin-bottom:4px;">Économie annuelle totale</div>
+        <div style="font-family:'Syne';font-size:20px;font-weight:700;color:var(--accent);">${Math.round(economieAnnuelle).toLocaleString('fr')} €/an</div>
+        <div style="font-size:11px;color:var(--gris);">contrat (${Math.round(economieFournisseur)} €) + carburant (${Math.round(economieCarburant)} €)</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+      <span style="font-size:12px;color:var(--gris);">Progression sur ${params.roiDuree} an${params.roiDuree>1?'s':''}</span>
+      <span style="font-size:12px;font-weight:600;color:${ans<=params.roiDuree?'var(--accent)':'var(--jaune)'};">${ans.toFixed(1)} ans de ROI</span>
+    </div>
+    <div class="roi-bar-track"><div class="roi-bar-fill" style="width:${pctBar}%"></div></div>
+    <div class="roi-legend"><span>Aujourd'hui</span><span>${params.roiDuree} ans</span></div>
+    <div class="alert ${ans<=params.roiDuree?'info':'warning'}" style="margin-top:12px;">
+      ${ans<=params.roiDuree
+        ?`✅ Objectif atteint avant ${params.roiDuree} ans. Retour réel : <strong>${ans.toFixed(1)} ans</strong>.`
+        :`⚠️ Retour estimé à <strong>${ans.toFixed(1)} ans</strong>, au-delà de votre objectif de ${params.roiDuree} ans.`}
+    </div>`;
+}
+
+function renderTable(resultats, factActuelle, params) {
+  const tbody=document.getElementById('compare-tbody');
+  tbody.innerHTML='';
+  resultats.forEach((r,i)=>{
+    const diff=Math.round(r.facture_totale-factActuelle);
+    const diffStr=(diff>=0?'+':'')+diff.toLocaleString('fr')+' €';
+    const tvE=tarifVEEffectif(r,params.rechargeHabitude);
+    const c100=r.type==='drive'?'Forfait':tvE?(params.cveKwh*tvE).toFixed(2)+' €':'—';
+    const fmtKwh=v=>v!=null?(v*100).toFixed(1)+' c€':'—';
+    // Pour Tempo/EJP/tempo_like : afficher tarif moyen pondéré en HC et HP
+    let hcDisplay='—', hpDisplay='—', baseDisplay='—';
+    if(r.type==='base') baseDisplay=fmtKwh(r.kwh_base);
+    else if(r.type==='hchp') { hcDisplay=fmtKwh(r.kwh_hc); hpDisplay=fmtKwh(r.kwh_hp); }
+    else if(r.type==='tempo') {
+      const j=r.tempo_jours,p=r.tempo_prix,tot=365;
+      const hcMoy=(j.bleu*p.bleu_hc+j.blanc*p.blanc_hc+j.rouge*p.rouge_hc)/tot;
+      const hpMoy=(j.bleu*p.bleu_hp+j.blanc*p.blanc_hp+j.rouge*p.rouge_hp)/tot;
+      hcDisplay=fmtKwh(hcMoy)+' moy.'; hpDisplay=fmtKwh(hpMoy)+' moy.';
+    }
+    else if(r.type==='ejp') {
+      const tot=365;
+      const hpMoy=(r.ejp_jours_pointe*r.kwh_ejp_pointe+(tot-r.ejp_jours_pointe)*r.kwh_ejp_normal)/tot;
+      baseDisplay=fmtKwh(hpMoy)+' moy.';
+    }
+    else if(r.type==='tempo_like') {
+      const tot=365;
+      const hcMoy=(r.jours_peak*r.kwh_peak_hc+r.jours_eco*r.kwh_eco_hc)/tot;
+      const hpMoy=(r.jours_peak*r.kwh_peak_hp+r.jours_eco*r.kwh_eco_hp)/tot;
+      hcDisplay=fmtKwh(hcMoy)+' moy.'; hpDisplay=fmtKwh(hpMoy)+' moy.';
+    }
+    else if(r.type==='drive') baseDisplay=fmtKwh(r.kwh_base);
+    tbody.innerHTML+=`<tr ${i===0?'class="highlight"':''}>
+      <td style="font-weight:700;color:${i===0?'var(--accent)':'var(--gris)'};">${i===0?'🥇':i+1}</td>
+      <td><strong style="color:var(--blanc);">${r.nom}</strong></td>
+      <td>${r.offre}</td>
+      <td>${r.abo.toFixed(2)} €</td>
+      <td>${hcDisplay}</td>
+      <td>${hpDisplay}</td>
+      <td>${baseDisplay}</td>
+      <td><strong style="color:${i===0?'var(--accent)':'var(--texte)'};">${r.facture_totale.toLocaleString('fr')} €</strong></td>
+      <td style="color:${diff<0?'var(--accent)':'var(--rouge)'};font-weight:600;">${diffStr}</td>
+      <td style="color:var(--accent2);">${c100}</td>
+    </tr>`;
+  });
+}
+
+// ===== EXPORT RAPPORT (HTML → nouvel onglet, imprimable en PDF) =====
+function exportPDF() {
+  const btn = document.getElementById('btn-pdf');
+  btn.textContent = '⏳ Génération…';
+  btn.disabled = true;
+
+  setTimeout(function() {
+    try {
+      const params = _lastParams;
+      const resultats = _lastResultats;
+      const factActuelle = _lastFactActuelle;
+
+      if (!params || !resultats || resultats.length === 0) {
+        alert('Aucune analyse à exporter. Lancez d\'abord une analyse.');
+        btn.textContent = '📄 Exporter PDF';
+        btn.disabled = false;
+        return;
+      }
+
+      const top = resultats[0];
+      const dateStr = document.getElementById('tarif-date').textContent || 'Mai 2026';
+      const conseil = document.getElementById('res-conseil').innerText || '';
+
+      // ---- Construction du HTML du rapport ----
+      const fmtK = v => v != null ? (v * 100).toFixed(1) + ' c€' : '—';
+
+      let tableRows = '';
+      resultats.forEach((r, i) => {
+        const diff = Math.round(r.facture_totale - factActuelle);
+        const diffStr = (diff >= 0 ? '+' : '') + diff.toLocaleString('fr') + ' €';
+        const tvE = tarifVEEffectif(r, params.rechargeHabitude);
+        const c100 = r.type === 'drive' ? 'Forfait' : tvE ? (params.cveKwh * tvE).toFixed(2) + ' €' : '—';
+
+        let hc = '—', hp = '—', base = '—';
+        if (r.type === 'base') base = fmtK(r.kwh_base);
+        else if (r.type === 'hchp') { hc = fmtK(r.kwh_hc); hp = fmtK(r.kwh_hp); }
+        else if (r.type === 'tempo') {
+          const j = r.tempo_jours, p = r.tempo_prix, tot = 365;
+          hc = fmtK((j.bleu*p.bleu_hc+j.blanc*p.blanc_hc+j.rouge*p.rouge_hc)/tot) + '*';
+          hp = fmtK((j.bleu*p.bleu_hp+j.blanc*p.blanc_hp+j.rouge*p.rouge_hp)/tot) + '*';
+        } else if (r.type === 'tempo_like') {
+          const tot = 365;
+          hc = fmtK((r.jours_peak*r.kwh_peak_hc+r.jours_eco*r.kwh_eco_hc)/tot) + '*';
+          hp = fmtK((r.jours_peak*r.kwh_peak_hp+r.jours_eco*r.kwh_eco_hp)/tot) + '*';
+        } else if (r.type === 'ejp') {
+          base = fmtK(r.kwh_ejp_normal) + '*';
+        } else if (r.type === 'drive') {
+          base = fmtK(r.kwh_base);
+        }
+
+        const rowStyle = i === 0 ? 'background:#e8fff6;font-weight:600;' : (i % 2 === 0 ? 'background:#f8f8f8;' : '');
+        const diffColor = diff < 0 ? 'color:#00875a;font-weight:700;' : 'color:#c0392b;';
+        tableRows += `<tr style="${rowStyle}">
+          <td style="text-align:center;font-weight:700;color:${i===0?'#00875a':'#666'};">${i===0?'★':i+1}</td>
+          <td><strong>${r.nom}</strong></td>
+          <td>${r.offre}</td>
+          <td style="text-align:center;">${r.abo.toFixed(2)} €</td>
+          <td style="text-align:center;">${hc}</td>
+          <td style="text-align:center;">${hp}</td>
+          <td style="text-align:center;">${base}</td>
+          <td style="text-align:center;font-weight:600;">${r.facture_totale.toLocaleString('fr')} €</td>
+          <td style="text-align:center;${diffColor}">${diffStr}</td>
+          <td style="text-align:center;color:#0066cc;">${c100}</td>
+        </tr>`;
+      });
+
+      const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Etude IRVE - ${new Date().toLocaleDateString('fr-FR')}</title>
+<style>
+  @media print { .no-print { display:none; } body { margin:0; } }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family: Arial, sans-serif; font-size: 12px; color: #222; background: #fff; padding: 20px; }
+  .header { background: #0a1628; color: white; padding: 20px 24px; border-radius: 8px; margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center; }
+  .header h1 { font-size: 20px; font-weight: 800; }
+  .header p { font-size: 11px; color: #aac; margin-top: 4px; }
+  .header-right { text-align:right; font-size:11px; color:#aac; }
+  .winner { background: linear-gradient(135deg, #e8fff6, #e8f4ff); border: 2px solid #00875a; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; }
+  .winner-label { font-size: 10px; font-weight: 700; color: #00875a; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .winner-name { font-size: 22px; font-weight: 800; color: #0a1628; }
+  .winner-offer { font-size: 13px; color: #00875a; font-weight: 600; margin: 4px 0 12px; }
+  .winner-metrics { display: flex; gap: 24px; flex-wrap: wrap; }
+  .metric { }
+  .metric-val { font-size: 18px; font-weight: 800; color: #0a1628; }
+  .metric-val.green { color: #00875a; }
+  .metric-val.blue { color: #0066cc; }
+  .metric-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  .section-title { font-size: 13px; font-weight: 700; color: #0a1628; margin: 16px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #e0e0e0; }
+  .params-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; margin-bottom: 16px; }
+  .param-row { display: flex; gap: 8px; font-size: 11px; }
+  .param-key { color: #888; min-width: 160px; }
+  .param-val { font-weight: 600; color: #222; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 16px; }
+  th { background: #0a1628; color: white; padding: 7px 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+  td { padding: 7px 8px; border-bottom: 1px solid #eee; }
+  .conseil { background: #f0f7ff; border-left: 4px solid #0066cc; padding: 12px 16px; border-radius: 0 6px 6px 0; font-size: 12px; line-height: 1.7; color: #333; margin-bottom: 16px; }
+  .footer { font-size: 10px; color: #aaa; border-top: 1px solid #eee; padding-top: 10px; margin-top: 16px; }
+  .print-btn { background: #0a1628; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
+  .print-btn:hover { background: #1a2a4a; }
+  .note { font-size: 10px; color: #888; font-style: italic; }
+</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
+
+<div class="header">
+  <div>
+    <h1>⚡ IRVE — Étude Tarifaire & Rentabilité</h1>
+    <p>Configurateur IRVE | Tarifs ${dateStr}</p>
+  </div>
+  <div class="header-right">
+    Généré le ${new Date().toLocaleDateString('fr-FR')}<br>
+    ${new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}
+  </div>
+</div>
+
+<div class="winner">
+  <div class="winner-label">★ Meilleure offre recommandée</div>
+  <div class="winner-name">${top.nom}</div>
+  <div class="winner-offer">${top.offre}</div>
+  <div class="winner-metrics">
+    <div class="metric">
+      <div class="metric-val green">${top.facture_totale.toLocaleString('fr')} €/an</div>
+      <div class="metric-label">Facture totale estimée</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val">${document.getElementById('res-economie').textContent.replace(/[✅⚠️]/g,'').trim()}</div>
+      <div class="metric-label">vs contrat actuel + VE</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val blue">${document.getElementById('res-roi').textContent}</div>
+      <div class="metric-label">Retour sur investissement borne</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val">${document.getElementById('res-100km').textContent}</div>
+      <div class="metric-label">Coût / 100 km rechargé</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-title">Paramètres de l'étude</div>
+<div class="params-grid">
+  <div class="param-row"><span class="param-key">Consommation foyer (hors VE)</span><span class="param-val">${params.consoTotal.toLocaleString('fr')} kWh/an</span></div>
+  <div class="param-row"><span class="param-key">Consommation annuelle VE</span><span class="param-val">${params.consoVE.toLocaleString('fr')} kWh/an (${params.km} km/j)</span></div>
+  <div class="param-row"><span class="param-key">Chauffage principal</span><span class="param-val">${params.chauffage.replace(/_/g,' ')}</span></div>
+  <div class="param-row"><span class="param-key">Production ECS</span><span class="param-val">${params.ecs.replace(/_/g,' ')}</span></div>
+  <div class="param-row"><span class="param-key">Habitude de recharge</span><span class="param-val">${params.rechargeHabitude}</span></div>
+  <div class="param-row"><span class="param-key">Borne connectée</span><span class="param-val">${params.borneSmart === 'oui' ? 'Oui' : 'Non'}</span></div>
+  <div class="param-row"><span class="param-key">Coût net borne IRVE</span><span class="param-val">${Math.round(params.coutBorne).toLocaleString('fr')} €</span></div>
+  <div class="param-row"><span class="param-key">Objectif ROI</span><span class="param-val">${params.roiDuree} ans</span></div>
+</div>
+
+<div class="section-title">Analyse & recommandations</div>
+<div class="conseil">${conseil}</div>
+
+<div class="section-title">Classement complet des offres</div>
+<table>
+  <thead>
+    <tr>
+      <th>#</th><th>Fournisseur</th><th>Offre</th><th>Abo./an</th>
+      <th>kWh HC</th><th>kWh HP</th><th>kWh Base</th>
+      <th>Facture/an</th><th>Diff. vs actuel</th><th>€/100km VE</th>
+    </tr>
+  </thead>
+  <tbody>${tableRows}</tbody>
+</table>
+<p class="note">* = tarif moyen pondéré annuel (offres dynamiques Tempo / EJP / Tempo-like). Les différences sont calculées par rapport au contrat actuel avec le VE.</p>
+
+<div class="footer">
+  Étude générée par Configurateur IRVE — Tarifs à titre indicatif, vérifier auprès des fournisseurs avant toute souscription.
+  Pour enregistrer en PDF : cliquez sur "Imprimer / Enregistrer en PDF" puis choisissez "Enregistrer en PDF" comme imprimante.
+</div>
+</body>
+</html>`;
+
+      // Encoder en base64 pour éviter les restrictions sur les data URI trop longues
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const newTab = window.open(url, '_blank');
+      if (!newTab) {
+        // Fallback : injecter dans un iframe modal sur la page
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;';
+        modal.innerHTML = `
+          <div style="font-family:DM Sans,sans-serif;color:#c8d8f0;font-size:14px;">Les popups sont bloquées. Autorisez-les pour ce site puis réessayez.</div>
+          <iframe srcdoc="${html.replace(/"/g,"'")}" style="width:90vw;height:80vh;border:none;border-radius:8px;background:white;"></iframe>
+          <button onclick="this.closest('div').remove()" style="background:#00e5a0;color:#0a1628;border:none;padding:10px 24px;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;">Fermer</button>`;
+        document.body.appendChild(modal);
+      }
+
+      btn.textContent = '✅ Rapport ouvert';
+      btn.disabled = false;
+      setTimeout(() => { btn.textContent = '📄 Exporter PDF'; }, 3000);
+
+    } catch (err) {
+      console.error('Erreur export:', err);
+      btn.textContent = '📄 Exporter PDF';
+      btn.disabled = false;
+    }
+  }, 50);
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded',()=>{
+  updateKmEstim();
+  mettreAJourTarifs();
+  document.getElementById('tarif-date').textContent=TARIFS_BASE.date;
+  onFournisseurChange();
+  checkChauffage();
+  document.querySelector('input[name="advenir"]:checked') &&
+    (document.getElementById('advenir-info').style.display='flex');
+  document.querySelectorAll('input[name="advenir"]').forEach(r=>{
+    r.addEventListener('change',()=>{
+      document.getElementById('advenir-info').style.display=r.value==='non'?'flex':'none';
+    });
+  });
+});
+</script>
+</body>
+</html>
