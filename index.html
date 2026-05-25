@@ -1068,7 +1068,7 @@ function renderDevis(){
 // ═══════════════════════════════════════════════
 // MISE À JOUR TARIFS (GitHub)
 // ═══════════════════════════════════════════════
-const TARIFS_URL='https://raw.githubusercontent.com/TON-PSEUDO/irve-configurateur/main/tarifs.json';
+const TARIFS_URL='https://raw.githubusercontent.com/Borneirve/irve-configurateur/main/tarifs.json';
 async function majTarifs(){
   try{
     const r=await fetch(TARIFS_URL,{cache:'no-store'});
@@ -1178,8 +1178,8 @@ async function lancerAnalyse(){
 // 1. Créer un compte gratuit sur brevo.com
 // 2. Paramètres → Clés API → Générer une clé API
 // 3. Renseigner les 3 constantes ci-dessous
-const BREVO_API_KEY  = 'YOUR_BREVO_API_KEY';  // ex: xkeysib-abc123...
-const MON_EMAIL      = 'votre@email.fr';       // Votre adresse pro (expéditeur vérifié dans Brevo)
+const BREVO_API_KEY  = '6ccd90994c661ccbed5eb40f275039ae';  // ex: xkeysib-abc123...
+const MON_EMAIL      = 'lucaswartelle@hotmail.fr';       // Votre adresse pro (expéditeur vérifié dans Brevo)
 const MON_NOM        = 'IRVE Studio';          // Nom affiché dans l'email
 
 // ═══════════════════════════════════════════════
