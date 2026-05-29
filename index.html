@@ -957,12 +957,14 @@ function checkPwd() {
 function showCRM() {
   document.getElementById('crm-panel').style.display='block';
   document.getElementById('crm-overlay').style.display='block';
+  document.body.style.overflow='hidden';
   crmTab('leads');
   renderLeads();
 }
 function closeCRM() {
   document.getElementById('crm-panel').style.display='none';
   document.getElementById('crm-overlay').style.display='none';
+  document.body.style.overflow='';
 }
 
 // ── HELPER FORMAT ─────────────────────────────
@@ -1189,7 +1191,7 @@ async function renderFinance() {
   }).join('') : '<tr><td colspan="8" style="padding:24px;text-align:center;color:#aaa;">Aucun chantier signé ou clôturé</td></tr>';
 }
 function calcObjectif(){
-  if(!window._finData) return;
+  if(!window._finData) window._finData = { caEnc: 0, depTotal: 0 };
   var caEnc = window._finData.caEnc || 0;
   var depTotal = window._finData.depTotal || 0;
   var tauxUr  = parseFloat(document.getElementById('taux-urssaf') ? document.getElementById('taux-urssaf').value : 22) || 22;
@@ -1442,242 +1444,3 @@ async function exporterRapport() {
   alert('Rapport CSV téléchargé !\n\nPour obtenir un ZIP avec toutes vos factures, ouvrez les liens Google Drive listés dans le fichier CSV.');
 }
 
-function showCRM(){
-  document.getElementById('crm-panel').style.display='block';
-  document.getElementById('crm-overlay').style.display='block';
-  document.getElementById('crm-subtitle').textContent = 'Chargement...';
-  document.getElementById('crm-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted);">⏳ Chargement des leads...</td></tr>';
-  renderLeads().catch(function(e){
-    console.error('renderLeads error:', e);
-    document.getElementById('crm-subtitle').textContent = 'Erreur: ' + e.message;
-    document.getElementById('crm-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:#dc3545;">❌ ' + e.message + '</td></tr>';
-  });
-}
-
-function closeCRM(){
-  document.getElementById('crm-panel').style.display='none';
-  document.getElementById('crm-overlay').style.display='none';
-}
-
-async function renderLeads(){
-  var fStat   = document.getElementById('crm-filter-statut').value;
-  var fType   = document.getElementById('crm-filter-type').value;
-  var fSearch = (document.getElementById('crm-search').value||'').toLowerCase();
-
-  var leads;
-  try {
-    leads = await apiGetLeads();
-  } catch(e) {
-    document.getElementById('crm-subtitle').textContent = 'Erreur de chargement — ' + e.message;
-    document.getElementById('crm-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:#dc3545;">❌ Impossible de charger les leads.<br><small>Vérifiez la configuration Vercel KV.</small></td></tr>';
-    return;
-  }
-
-  // Stats
-  var stats = {nouveau:0,contact:0,relance:0,devis:0,signe:0,perdu:0};
-  leads.forEach(function(l){ if(stats[l.statut]!==undefined) stats[l.statut]++; });
-  var statsEl = document.getElementById('crm-stats');
-  statsEl.innerHTML = Object.keys(STATUTS).map(function(k){
-    return '<div style="background:'+STATUTS[k].bg+';border:1px solid '+STATUTS[k].color+'33;border-radius:8px;padding:12px;text-align:center;">'
-      +'<div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;color:'+STATUTS[k].color+';">'+stats[k]+'</div>'
-      +'<div style="font-size:11px;color:#666;margin-top:2px;">'+STATUTS[k].label+'</div></div>';
-  }).join('');
-
-  // Filtrage
-  var filtered = leads.filter(function(l){
-    if(fStat && l.statut!==fStat) return false;
-    if(fType && !l.itype.toLowerCase().includes(fType)) return false;
-    if(fSearch && !(l.nom+l.email+l.cp+l.tel).toLowerCase().includes(fSearch)) return false;
-    return true;
-  });
-
-  document.getElementById('crm-subtitle').textContent = leads.length+' lead'+(leads.length>1?'s':'')+' au total · '+filtered.length+' affiché'+(filtered.length>1?'s':'');
-
-  var tbody = document.getElementById('crm-tbody');
-  var empty = document.getElementById('crm-empty');
-
-  if(filtered.length===0){ tbody.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display='none';
-
-  tbody.innerHTML = filtered.map(function(l,i){
-    var s = STATUTS[l.statut]||STATUTS.nouveau;
-    return '<tr style="border-bottom:1px solid #eee;'+(i%2===0?'background:#fafafa;':'')+'transition:background .15s;" onmouseover="this.style.background=\'#f0f7ff\'" onmouseout="this.style.background=\''+(i%2===0?'#fafafa':'white')+'\'">'
-      +'<td style="padding:12px 14px;"><strong style="font-size:13px;color:#0d1b2a;">'+l.nom+'</strong><br><span style="font-size:11px;color:#888;">'+l.cp+'</span></td>'
-      +'<td style="padding:12px 14px;font-size:12px;color:#444;"><div>📧 '+l.email+'</div><div>📞 '+l.tel+'</div></td>'
-      +'<td style="padding:12px 14px;font-size:12px;color:#555;">'+l.itype+'<br><span style="color:#888;">'+l.nb_b+' borne(s)</span></td>'
-      +'<td style="padding:12px 14px;font-size:13px;font-weight:700;color:#00875a;">'+l.devis+' EUR</td>'
-      +'<td style="padding:12px 14px;font-size:12px;color:#888;">'+l.date+'</td>'
-      +'<td style="padding:12px 14px;">'
-        +'<select onchange="updateStatut('+l.id+',this.value)" style="padding:5px 8px;border-radius:5px;border:1px solid '+s.color+';background:'+s.bg+';color:'+s.color+';font-size:12px;font-weight:700;cursor:pointer;">'
-        +Object.keys(STATUTS).map(function(k){ return '<option value="'+k+'"'+(l.statut===k?' selected':'')+'>'+STATUTS[k].label+'</option>'; }).join('')
-        +'</select></td>'
-      +'<td style="padding:12px 14px;display:flex;gap:6px;">'
-        +'<button onclick="openDetail('+l.id+')" style="background:#e8f0ff;color:#0066cc;border:none;padding:5px 10px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">👁 Voir</button>'
-        +'<button onclick="deleteLead('+l.id+')" style="background:#ffeaea;color:#dc3545;border:none;padding:5px 10px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">🗑</button>'
-      +'</td>'
-      +'</tr>';
-  }).join('');
-}
-
-async function updateStatut(id, statut){
-  var s = STATUTS[statut]||STATUTS.nouveau;
-  try {
-    await apiUpdateLead(id, { statut, histo_action: 'Statut → ' + s.label });
-    renderLeads();
-  } catch(e) { alert('Erreur mise à jour: ' + e.message); }
-}
-
-async function deleteLead(id){
-  if(!confirm('Supprimer ce lead ?')) return;
-  try {
-    await apiUpdateLead(id, { statut: '__delete__' });
-    // Supprimer côté serveur via endpoint dédié — pour l'instant on recharge
-    renderLeads();
-  } catch(e) { alert('Erreur: ' + e.message); }
-}
-
-function openDetail(id){
-  // Charger depuis l'API et afficher
-  apiGetLeads().then(function(leads){
-    var l = leads.find(function(x){return x.id===id;});
-    if(!l) return;
-    document.getElementById('modal-title').textContent = '👤 '+l.nom+' — '+l.date;
-    document.getElementById('modal-body').innerHTML =
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">'
-      +'<div><p style="font-size:11px;font-weight:700;color:#333;text-transform:uppercase;margin-bottom:8px;">Coordonnées</p>'
-      +'<p style="font-size:13px;margin-bottom:4px;"><strong>'+l.nom+'</strong></p>'
-      +'<p style="font-size:13px;color:#1a1a1a;margin-bottom:2px;">📧 '+l.email+'</p>'
-      +'<p style="font-size:13px;color:#1a1a1a;margin-bottom:2px;">📞 '+l.tel+'</p>'
-      +'<p style="font-size:13px;color:#1a1a1a;">📍 '+(l.adresse||((l.adr&&l.adr!=='-'?l.adr+' ':'')+l.cp+(l.ville&&l.ville!=='-'?' '+l.ville:'')))+'</p></div>'
-      +'<div><p style="font-size:11px;font-weight:700;color:#333;text-transform:uppercase;margin-bottom:8px;">Projet</p>'
-      +'<p style="font-size:13px;margin-bottom:2px;">Installation : <strong>'+l.itype+'</strong></p>'
-      +'<p style="font-size:13px;margin-bottom:2px;">Borne : '+l.borne+'</p>'
-      +'<p style="font-size:13px;margin-bottom:2px;">Nb bornes : '+l.nb_b+'</p>'
-      +'<p style="font-size:13px;margin-bottom:2px;">Devis net : <strong style="color:#00875a;">'+l.devis+' EUR TTC</strong></p>'
-      +'<p style="font-size:13px;">Tarif reco : '+l.tarif+'</p></div></div>'
-      +(l.msg?'<div style="background:#f5f9ff;border-left:3px solid #0066cc;padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:16px;font-size:13px;color:#1a1a1a;">💬 '+l.msg+'</div>':'')
-      +'<div style="margin-bottom:16px;">'
-      +'<p style="font-size:11px;font-weight:700;color:#333;text-transform:uppercase;margin-bottom:8px;">Notes</p>'
-      +'<textarea id="note-'+l.id+'" style="width:100%;border:1px solid #dce8f0;border-radius:6px;padding:10px;font-size:13px;resize:vertical;min-height:80px;" placeholder="Ajouter une note...">'+l.notes+'</textarea>'
-      +'<button onclick="saveNote('+l.id+')" style="background:#0a1628;color:white;border:none;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;">💾 Sauvegarder</button>'
-      +'</div>'
-      +'<div><p style="font-size:11px;font-weight:700;color:#333;text-transform:uppercase;margin-bottom:8px;">Historique</p>'
-      +'<div style="display:flex;flex-direction:column;gap:6px;">'
-      +(l.histo||[]).map(function(h){ return '<div style="display:flex;gap:10px;align-items:flex-start;font-size:12px;color:#1a1a1a;"><span style="color:#00875a;flex-shrink:0;">'+h.date+'</span><span>'+h.action+'</span></div>'; }).join('')
-      +'</div></div>'
-      +'<div style="margin-top:16px;padding-top:16px;border-top:1px solid #eee;display:flex;gap:8px;flex-wrap:wrap;">'
-      +'<button onclick="addHistoNote('+l.id+')" style="background:#f5f9ff;color:#0066cc;border:1px solid #0066cc;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">📞 Appel effectué</button>'
-      +'<button onclick="addHistoRelance('+l.id+')" style="background:#fff4e0;color:#f5a623;border:1px solid #f5a623;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">🔄 Planifier relance</button>'
-      +'<button onclick="addHistoDevis('+l.id+')" style="background:#e8fff4;color:#00875a;border:1px solid #00875a;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">📄 Devis envoyé</button>'
-      +'</div>';
-    document.getElementById('lead-modal').style.display='flex';
-  });
-}
-
-async function saveNote(id){
-  var notes = document.getElementById('note-'+id).value;
-  try {
-    await apiUpdateLead(id, { notes, histo_action: 'Note ajoutée' });
-    alert('Note sauvegardée');
-  } catch(e) { alert('Erreur: ' + e.message); }
-}
-
-async function addHistoAction(id, action, statut){
-  var updates = { histo_action: action };
-  if(statut) updates.statut = statut;
-  try {
-    await apiUpdateLead(id, updates);
-    openDetail(id);
-    renderLeads();
-  } catch(e) { alert('Erreur: ' + e.message); }
-}
-function addHistoNote(id){ addHistoAction(id,'📞 Appel effectué','contact'); }
-function addHistoRelance(id){ addHistoAction(id,'🔄 Relance planifiée','relance'); }
-function addHistoDevis(id){ addHistoAction(id,'📄 Devis envoyé','devis'); }
-
-async function exportLeads(){
-  var leads;
-  try { leads = await apiGetLeads(); } catch(e){ alert('Erreur: '+e.message); return; }
-  if(!leads.length){ alert('Aucun lead à exporter'); return; }
-  var csv = 'Nom,Email,Tel,CP,Type,Borne,Devis EUR,Tarif,Statut,Date,Notes\n';
-  leads.forEach(function(l){
-    csv += [l.nom,l.email,l.tel,l.cp,l.itype,l.borne,l.devis,l.tarif,l.statut,l.date,'"'+(l.notes||'').replace(/"/g,"'")+'\"'].join(',')+'\n';
-  });
-  var a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download = 'leads-irve-'+new Date().toISOString().slice(0,10)+'.csv';
-  a.click();
-}
-</script>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <a href="#" class="logo">
-          <div class="logo-icon">⚡</div>
-          <span class="logo-text" style="color:white;">Volt<span>Expert</span></span>
-        </a>
-        <p>Installation IRVE certifiée + optimisation tarifaire. La borne, et bien plus.</p>
-      </div>
-      <div class="footer-col">
-        <h4>Solutions</h4>
-        <ul>
-          <li><a href="#">Particuliers</a></li>
-          <li><a href="#">Copropriétés</a></li>
-          <li><a href="#">Entreprises</a></li>
-          <li><a href="#">Aides ADVENIR</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Services</h4>
-        <ul>
-          <li><a href="#">Configurateur</a></li>
-          <li><a href="#">Optimisation tarifaire</a></li>
-          <li><a href="#">Contact</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Légal</h4>
-        <ul>
-          <li><a href="#">Mentions légales</a></li>
-          <li><a href="#">CGV</a></li>
-          <li><a href="#">Confidentialité</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>© 2025 VoltExpert — Tous droits réservés</span>
-      <span>Certifié RGE QualiChargie · IRVE</span>
-    </div>
-  </div>
-</footer>
-
-<script>
-function showTab(id){
-  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
-  document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active');});
-  event.target.classList.add('active');
-  document.getElementById('tab-'+id).classList.add('active');
-}
-function toggleFaq(el){
-  var item=el.closest('.faq-item');
-  var open=item.classList.contains('open');
-  item.closest('.faq-block').querySelectorAll('.faq-item').forEach(function(i){i.classList.remove('open');});
-  if(!open) item.classList.add('open');
-}
-// Scroll reveal
-var obs=new IntersectionObserver(function(entries){
-  entries.forEach(function(e){
-    if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}
-  });
-},{threshold:0.08});
-document.querySelectorAll('.borne-card,.opti-item,.aide-item,.step,.devis-card').forEach(function(el){
-  el.style.opacity='0';el.style.transform='translateY(18px)';
-  el.style.transition='opacity .5s ease, transform .5s ease';
-  obs.observe(el);
-});
-</script>
-</body>
-</html>
