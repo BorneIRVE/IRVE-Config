@@ -1180,7 +1180,7 @@ async function renderFinance() {
   var caRestant = Math.max(0, caNecess - caEnc);
   var avancement = caNecess > 0 ? Math.min(100, Math.round(caEnc / caNecess * 100)) : 100;
   var objHtml = kpi('CA HT nécessaire', fmt(caNecess)+' €', '#0066cc', 'pour '+fmt(objMensuel)+' € net')+
-    kpi('Déjà encaissé', fmt(caEnc)+' €', caEnc>=caNecess?'#00875a':'#f5a623', avancement+'% de l'objectif')+
+    kpi('Déjà encaissé', fmt(caEnc)+' €', caEnc>=caNecess?'#00875a':'#f5a623', avancement+'% de l\'objectif')+
     kpi('Reste à facturer', caRestant>0?fmt(caRestant)+' €':'Objectif atteint ✅', caRestant>0?'#dc3545':'#00875a', caRestant>0?(Math.ceil(caRestant/500)+' devis ~500€ HT'):'');
   // Barre de progression
   objHtml += '<div style="grid-column:1/-1;background:#f0f4f8;border-radius:8px;overflow:hidden;height:8px;">'
