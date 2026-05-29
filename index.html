@@ -642,11 +642,11 @@ footer{background:var(--ink);border-top:1px solid var(--border);padding:40px 6vw
 </div>
 
 <!-- Modal détail lead -->
-<div id="lead-modal" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
-  <div style="background:white;border-radius:12px;width:90%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.3);">
+<div id="lead-modal" onclick="if(event.target===this)closeModal()" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
+  <div onclick="event.stopPropagation()" style="background:white;border-radius:12px;width:90%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.3);">
     <div style="background:var(--ink);color:white;padding:18px 22px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;">
       <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;" id="modal-title">Détail du lead</h3>
-      <button onclick="closeModal()" style="background:none;border:none;color:white;font-size:20px;cursor:pointer;position:relative;z-index:10;padding:4px 8px;">✕</button>
+      <button onclick="closeModal()" style="background:rgba(255,255,255,.15);border:none;color:white;font-size:18px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
     </div>
     <div id="modal-body" style="padding:22px;"></div>
   </div>
@@ -665,6 +665,8 @@ footer{background:var(--ink);border-top:1px solid var(--border);padding:40px 6vw
 </div>
 
 <script>
+function closeModal(){ document.getElementById('lead-modal').style.display='none'; }
+
 // ── HAMBURGER MENU ─────────────────────────────
 function toggleMenu(){
   var btn = document.getElementById('hamburger-btn');
