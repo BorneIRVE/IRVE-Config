@@ -2364,18 +2364,19 @@ function chkPwd(){if(document.getElementById('adm-pwd').value===getPwd()){docume
 function chgPwd(){const o=document.getElementById('s-old').value,n=document.getElementById('s-new').value,c=document.getElementById('s-conf').value,m=document.getElementById('s-msg');if(o!==getPwd()){m.style.color='var(--coral)';m.textContent='Mot de passe actuel incorrect.';return;}if(n.length<4){m.style.color='var(--coral)';m.textContent='4 caractères minimum.';return;}if(n!==c){m.style.color='var(--coral)';m.textContent='Les mots de passe ne correspondent pas.';return;}localStorage.setItem(PWD_KEY,n);m.style.color='var(--lime)';m.textContent='✅ Mot de passe modifié.';}
 function rdrEntreprise(){
   var e=loadEntreprise();
-  document.getElementById('e-send-email').value=e.send_email||'';
-  document.getElementById('e-domaine').value=e.domaine||'';
-  document.getElementById('e-nom').value=e.nom||'';
-  document.getElementById('e-forme').value=e.forme||'';
-  document.getElementById('e-adresse').value=e.adresse||'';
-  document.getElementById('e-cp-ville').value=e.cp_ville||'';
-  document.getElementById('e-tel').value=e.tel||'';
-  document.getElementById('e-email').value=e.email||'';
-  document.getElementById('e-siret').value=e.siret||'';
-  document.getElementById('e-tva').value=e.tva_intra||'';
-  document.getElementById('e-rcs').value=e.rcs||'';
-  document.getElementById('e-logo').value=e.logo_url||'';
+  var set=function(id,v){var el=document.getElementById(id);if(el)el.value=v||'';};
+  set('e-send-email',e.send_email);
+  set('e-domaine',e.domaine);
+  set('e-nom',e.nom);
+  set('e-forme',e.forme);
+  set('e-adresse',e.adresse);
+  set('e-cp-ville',e.cp_ville);
+  set('e-tel',e.tel);
+  set('e-email',e.email);
+  set('e-siret',e.siret);
+  set('e-tva',e.tva_intra);
+  set('e-rcs',e.rcs);
+  set('e-logo',e.logo_url);
 }
 async function sauverEntreprise(){
   var e={
