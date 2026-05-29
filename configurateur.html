@@ -633,6 +633,7 @@ input[type=checkbox]{width:auto;accent-color:var(--lime);}
         <div class="adm-tab on" onclick="aTab('t-bornes',this)">Bornes</div>
         <div class="adm-tab" onclick="aTab('t-tarifs',this)">Tarifs</div>
         <div class="adm-tab" onclick="aTab('t-options',this)">Options</div>
+        <div class="adm-tab" onclick="aTab('t-entreprise',this)">Entreprise</div>
         <div class="adm-tab" onclick="aTab('t-secu',this)">Sécurité</div>
       </div>
       <div class="atab on" id="t-bornes">
@@ -673,6 +674,34 @@ input[type=checkbox]{width:auto;accent-color:var(--lime);}
         <div class="asec"><div class="asec-t">Options proposées</div><div id="opts-list"></div><button class="btn-add" onclick="addOpt()">+ Ajouter une option</button></div>
         <div style="display:flex;justify-content:flex-end;"><button class="btn-save" onclick="sauver()">💾 Sauvegarder</button></div>
       </div>
+      <div class="atab" id="t-entreprise">
+        <div class="asec">
+          <div class="asec-t">Informations de l'entreprise</div>
+          <div class="al info" style="margin-bottom:12px;font-size:11px;">ℹ️ Ces informations apparaissent sur tous les devis et documents générés.</div>
+          <div class="g2a" style="margin-bottom:9px;">
+            <div><span class="adm-lbl">Nom de l'entreprise</span><input type="text" id="e-nom" placeholder="Votre Entreprise IRVE"></div>
+            <div><span class="adm-lbl">Forme juridique (SAS, SARL, EI...)</span><input type="text" id="e-forme" placeholder="SAS"></div>
+          </div>
+          <div class="g2a" style="margin-bottom:9px;">
+            <div><span class="adm-lbl">Adresse</span><input type="text" id="e-adresse" placeholder="12 rue de l'Électricité"></div>
+            <div><span class="adm-lbl">Code postal & ville</span><input type="text" id="e-cp-ville" placeholder="75000 Paris"></div>
+          </div>
+          <div class="g2a" style="margin-bottom:9px;">
+            <div><span class="adm-lbl">Téléphone</span><input type="tel" id="e-tel" placeholder="01 23 45 67 89"></div>
+            <div><span class="adm-lbl">Email de contact</span><input type="email" id="e-email" placeholder="contact@votreentreprise.fr"></div>
+          </div>
+          <div class="g2a" style="margin-bottom:9px;">
+            <div><span class="adm-lbl">SIRET</span><input type="text" id="e-siret" placeholder="123 456 789 00012"></div>
+            <div><span class="adm-lbl">TVA intracommunautaire</span><input type="text" id="e-tva" placeholder="FR12 123456789"></div>
+          </div>
+          <div class="g2a">
+            <div><span class="adm-lbl">RCS</span><input type="text" id="e-rcs" placeholder="Paris B 123 456 789"></div>
+            <div><span class="adm-lbl">URL Logo (optionnel)</span><input type="url" id="e-logo" placeholder="https://..."></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;"><button class="btn-save" onclick="sauverEntreprise()">💾 Sauvegarder</button></div>
+      </div>
+
       <div class="atab" id="t-secu">
         <div class="asec">
           <div class="asec-t">Changer le mot de passe</div>
@@ -1253,6 +1282,9 @@ async function lancerAnalyse(){
 // par : https://ton-projet.vercel.app/api/send-email
 const VERCEL_API_URL = 'https://vercel-dun-eta-98.vercel.app/api/send-email';
 const MON_EMAIL      = 'votre@email.fr';
+
+// Charger les infos entreprise depuis Vercel au démarrage
+document.addEventListener('DOMContentLoaded', function(){ loadEntrepriseFromVercel(); });
 
 // ═══════════════════════════════════════════════
 // ENVOI EMAIL VIA VERCEL FUNCTION
@@ -2325,10 +2357,67 @@ function exportRapport(){
 // ═══════════════════════════════════════════════
 // ADMIN
 // ═══════════════════════════════════════════════
-function openAdm(){document.getElementById('adm-overlay').classList.add('on');document.getElementById('adm-login').style.display='block';document.getElementById('adm-panel').style.display='none';document.getElementById('adm-pwd').value='';document.getElementById('adm-err').style.display='none';}
+function openAdm(){
+  rdrEntreprise();document.getElementById('adm-overlay').classList.add('on');document.getElementById('adm-login').style.display='block';document.getElementById('adm-panel').style.display='none';document.getElementById('adm-pwd').value='';document.getElementById('adm-err').style.display='none';}
 function closeAdm(){document.getElementById('adm-overlay').classList.remove('on');}
 function chkPwd(){if(document.getElementById('adm-pwd').value===getPwd()){document.getElementById('adm-login').style.display='none';document.getElementById('adm-panel').style.display='block';rdrBornes();rdrTarifs();rdrOpts();}else{document.getElementById('adm-err').style.display='block';}}
 function chgPwd(){const o=document.getElementById('s-old').value,n=document.getElementById('s-new').value,c=document.getElementById('s-conf').value,m=document.getElementById('s-msg');if(o!==getPwd()){m.style.color='var(--coral)';m.textContent='Mot de passe actuel incorrect.';return;}if(n.length<4){m.style.color='var(--coral)';m.textContent='4 caractères minimum.';return;}if(n!==c){m.style.color='var(--coral)';m.textContent='Les mots de passe ne correspondent pas.';return;}localStorage.setItem(PWD_KEY,n);m.style.color='var(--lime)';m.textContent='✅ Mot de passe modifié.';}
+function rdrEntreprise(){
+  var e=loadEntreprise();
+  document.getElementById('e-send-email').value=e.send_email||'';
+  document.getElementById('e-domaine').value=e.domaine||'';
+  document.getElementById('e-nom').value=e.nom||'';
+  document.getElementById('e-forme').value=e.forme||'';
+  document.getElementById('e-adresse').value=e.adresse||'';
+  document.getElementById('e-cp-ville').value=e.cp_ville||'';
+  document.getElementById('e-tel').value=e.tel||'';
+  document.getElementById('e-email').value=e.email||'';
+  document.getElementById('e-siret').value=e.siret||'';
+  document.getElementById('e-tva').value=e.tva_intra||'';
+  document.getElementById('e-rcs').value=e.rcs||'';
+  document.getElementById('e-logo').value=e.logo_url||'';
+}
+async function sauverEntreprise(){
+  var e={
+    send_email:document.getElementById('e-send-email').value||'',
+    domaine:document.getElementById('e-domaine').value||'',
+    nom:document.getElementById('e-nom').value||'',
+    forme:document.getElementById('e-forme').value||'',
+    adresse:document.getElementById('e-adresse').value||'',
+    cp_ville:document.getElementById('e-cp-ville').value||'',
+    tel:document.getElementById('e-tel').value||'',
+    email:document.getElementById('e-email').value||'',
+    siret:document.getElementById('e-siret').value||'',
+    tva_intra:document.getElementById('e-tva').value||'',
+    rcs:document.getElementById('e-rcs').value||'',
+    logo_url:document.getElementById('e-logo').value||'',
+  };
+  var sec=document.querySelector('#t-entreprise .asec');
+  var msgEl=document.createElement('div');
+  msgEl.className='al info';msgEl.textContent='⏳ Sauvegarde en cours...';
+  sec.appendChild(msgEl);
+  try{
+    var r=await fetch(VERCEL_API_URL.replace('/api/send-email','/api/config'),{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+ADM_PWD},
+      body:JSON.stringify(e),
+    });
+    var json=await r.json();
+    if(r.ok && json.success){
+      ENTREPRISE=e;
+      localStorage.setItem('irve_entreprise',JSON.stringify(e));
+      msgEl.className='al ok';msgEl.textContent='✅ Informations sauvegardées sur tous vos appareils';
+    } else {
+      throw new Error(json.error||'Erreur serveur');
+    }
+  }catch(err){
+    // Fallback localStorage
+    ENTREPRISE=e;
+    localStorage.setItem('irve_entreprise',JSON.stringify(e));
+    msgEl.className='al warn';msgEl.textContent='⚠️ Sauvegardé en local uniquement ('+err.message+')';
+  }
+  setTimeout(function(){msgEl.remove();},4000);
+}
 function aTab(id,el){document.querySelectorAll('.atab').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.adm-tab').forEach(t=>t.classList.remove('on'));document.getElementById(id).classList.add('on');el.classList.add('on');}
 const ULBL={particulier_maison:'Maison',particulier_copro:'Copro',pro_parking:'Parking',pro_flotte:'Flotte'};
 

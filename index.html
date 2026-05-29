@@ -575,83 +575,247 @@ footer{background:var(--ink);border-top:1px solid var(--border);padding:40px 6vw
   </div>
 </section>
 
-<!-- ══════════ PANNEAU CRM LEADS ══════════ -->
+<!-- ══════════ PANNEAU CRM COMPLET ══════════ -->
 <div id="crm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;backdrop-filter:blur(4px);" onclick="if(event.target===this)closeCRM()"></div>
 
-<div id="crm-panel" style="display:none;position:fixed;inset:0;z-index:1001;background:var(--mist);overflow-y:auto;">
-  <div style="max-width:1200px;margin:0 auto;padding:24px;">
+<div id="crm-panel" style="display:none;position:fixed;inset:0;z-index:1001;background:#f0f4f8;overflow-y:auto;">
+  <div style="max-width:1300px;margin:0 auto;padding:24px;">
 
-    <!-- Header CRM -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-      <div>
-        <h2 style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--ink);">📋 CRM Leads</h2>
-        <p style="font-size:13px;color:var(--muted);margin-top:3px;" id="crm-subtitle">Chargement...</p>
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;background:var(--ink);color:white;padding:16px 20px;border-radius:10px;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <span style="font-size:22px;">📊</span>
+        <div>
+          <h2 style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;margin:0;">Espace de gestion</h2>
+          <p style="font-size:12px;color:rgba(255,255,255,.6);margin:0;" id="crm-subtitle">Chargement...</p>
+        </div>
       </div>
-      <div style="display:flex;gap:10px;align-items:center;">
-        <button onclick="exportLeads()" style="background:var(--ink);color:white;border:none;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">⬇ Export CSV</button>
-        <a href="https://borneirve.github.io/irve-studio/" style="background:var(--border2);color:var(--text);padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;">🏠 Accueil</a><button onclick="closeCRM()" style="background:var(--border);color:var(--ink);border:none;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">✕ Fermer</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a href="https://borneirve.github.io/irve-studio/" style="background:rgba(255,255,255,.1);color:white;padding:7px 14px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">🏠 Accueil</a>
+        <button onclick="closeCRM()" style="background:rgba(255,255,255,.1);color:white;border:none;padding:7px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">✕ Fermer</button>
+      </div>
+    </div>
+
+    <!-- Onglets principaux -->
+    <div style="display:flex;gap:0;background:white;border-radius:10px;overflow:hidden;border:1px solid #dce8f0;margin-bottom:20px;">
+      <button onclick="crmTab('leads')" id="ctab-leads" style="flex:1;padding:13px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;background:var(--ink);color:white;border-right:1px solid #dce8f0;">📋 Leads</button>
+      <button onclick="crmTab('finance')" id="ctab-finance" style="flex:1;padding:13px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;background:white;color:#6b8299;border-right:1px solid #dce8f0;">💰 Finances</button>
+      <button onclick="crmTab('depenses')" id="ctab-depenses" style="flex:1;padding:13px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;background:white;color:#6b8299;border-right:1px solid #dce8f0;">🧾 Dépenses</button>
+      <button onclick="crmTab('rapports')" id="ctab-rapports" style="flex:1;padding:13px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;background:white;color:#6b8299;">📈 Rapports</button>
+    </div>
+
+    <!-- ══ ONGLET LEADS ══ -->
+    <div id="crm-tab-leads">
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <select id="crm-filter-statut" onchange="renderLeads()" style="padding:8px 12px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;">
+          <option value="">Tous les statuts</option>
+          <option value="nouveau">🔵 Nouveau</option>
+          <option value="contact">📞 À contacter</option>
+          <option value="relance">🔄 Relance</option>
+          <option value="devis">📄 Devis envoyé</option>
+          <option value="signe">✅ Signé</option>
+          <option value="cloture">🏁 Clôturé</option>
+          <option value="perdu">❌ Perdu</option>
+        </select>
+        <select id="crm-filter-type" onchange="renderLeads()" style="padding:8px 12px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;">
+          <option value="">Tous les profils</option>
+          <option value="particulier">🏠 Particulier</option>
+          <option value="copro">🏢 Copropriété</option>
+          <option value="pro">🏭 Entreprise</option>
+        </select>
+        <input id="crm-search" oninput="renderLeads()" placeholder="🔍 Rechercher..." style="padding:8px 12px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;flex:1;min-width:180px;">
+        <button onclick="exportLeads()" style="background:var(--ink);color:white;border:none;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">⬇ CSV</button>
+      </div>
+      <div id="crm-stats" style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:16px;"></div>
+      <div style="background:white;border-radius:10px;border:1px solid #dce8f0;overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;" id="crm-table">
+          <thead>
+            <tr style="background:var(--ink);color:white;">
+              <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;">Client</th>
+              <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;">Contact</th>
+              <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;">Profil</th>
+              <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;">Devis HT</th>
+              <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;">Encaissé</th>
+              <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;">Date</th>
+              <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;">Statut</th>
+              <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="crm-tbody"></tbody>
+        </table>
+        <div id="crm-empty" style="display:none;padding:48px;text-align:center;color:#6b8299;">
+          <div style="font-size:36px;margin-bottom:12px;">📭</div>
+          <p style="font-size:15px;font-weight:600;">Aucun lead pour le moment</p>
+        </div>
       </div>
     </div>
 
-    <!-- Filtres -->
-    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-      <select id="crm-filter-statut" onchange="renderLeads()" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;color:var(--text);">
-        <option value="">Tous les statuts</option>
-        <option value="nouveau">🔵 Nouveau</option>
-        <option value="contact">📞 À contacter</option>
-        <option value="relance">🔄 Relance</option>
-        <option value="devis">📄 Devis envoyé</option>
-        <option value="signe">✅ Signé</option>
-        <option value="perdu">❌ Perdu</option>
-      </select>
-      <select id="crm-filter-type" onchange="renderLeads()" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;color:var(--text);">
-        <option value="">Tous les profils</option>
-        <option value="particulier">🏠 Particulier</option>
-        <option value="copro">🏢 Copropriété</option>
-        <option value="pro">🏭 Entreprise</option>
-      </select>
-      <input id="crm-search" oninput="renderLeads()" placeholder="🔍 Rechercher nom, email, ville..." style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;flex:1;min-width:200px;">
-    </div>
-
-    <!-- Stats rapides -->
-    <div id="crm-stats" style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;"></div>
-
-    <!-- Table leads -->
-    <div style="background:white;border-radius:10px;border:1px solid var(--border);overflow:hidden;">
-      <table style="width:100%;border-collapse:collapse;" id="crm-table">
-        <thead>
-          <tr style="background:var(--ink);color:white;">
-            <th style="padding:12px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Client</th>
-            <th style="padding:12px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Contact</th>
-            <th style="padding:12px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Profil</th>
-            <th style="padding:12px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Devis</th>
-            <th style="padding:12px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Date</th>
-            <th style="padding:12px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Statut</th>
-            <th style="padding:12px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="crm-tbody"></tbody>
-      </table>
-      <div id="crm-empty" style="display:none;padding:48px;text-align:center;color:var(--muted);">
-        <div style="font-size:36px;margin-bottom:12px;">📭</div>
-        <p style="font-size:15px;font-weight:600;">Aucun lead pour le moment</p>
-        <p style="font-size:13px;margin-top:4px;">Les leads apparaîtront ici après soumission du configurateur.</p>
+    <!-- ══ ONGLET FINANCES ══ -->
+    <div id="crm-tab-finance" style="display:none;">
+      <!-- KPIs -->
+      <div id="fin-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;"></div>
+      <!-- TVA -->
+      <div style="background:white;border-radius:10px;border:1px solid #dce8f0;padding:20px;margin-bottom:20px;">
+        <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#0d1b2a;margin-bottom:16px;">📋 Tableau TVA</h3>
+        <div id="fin-tva" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;"></div>
+      </div>
+      <!-- Charges sociales -->
+      <div style="background:white;border-radius:10px;border:1px solid #dce8f0;padding:20px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#0d1b2a;margin:0;">📊 Charges sociales estimées</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <label style="font-size:12px;color:#6b8299;">Taux URSSAF %</label>
+            <input type="number" id="taux-urssaf" value="22" min="0" max="50" style="width:60px;padding:4px 8px;border:1px solid #dce8f0;border-radius:4px;font-size:13px;" oninput="renderFinance()">
+            <label style="font-size:12px;color:#6b8299;">Retraite %</label>
+            <input type="number" id="taux-retraite" value="8" min="0" max="30" style="width:60px;padding:4px 8px;border:1px solid #dce8f0;border-radius:4px;font-size:13px;" oninput="renderFinance()">
+          </div>
+        </div>
+        <div id="fin-charges" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;"></div>
+      </div>
+      <!-- Détail par chantier -->
+      <div style="background:white;border-radius:10px;border:1px solid #dce8f0;overflow:hidden;">
+        <div style="padding:16px 20px;border-bottom:1px solid #dce8f0;display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#0d1b2a;margin:0;">📑 Détail par chantier (signés + clôturés)</h3>
+          <div style="display:flex;gap:8px;">
+            <input type="date" id="fin-date-from" style="padding:6px 10px;border:1px solid #dce8f0;border-radius:6px;font-size:12px;" oninput="renderFinance()">
+            <span style="line-height:2;color:#6b8299;font-size:12px;">au</span>
+            <input type="date" id="fin-date-to" style="padding:6px 10px;border:1px solid #dce8f0;border-radius:6px;font-size:12px;" oninput="renderFinance()">
+            <button onclick="resetFinDates()" style="background:#f0f4f8;border:1px solid #dce8f0;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;">Tout</button>
+          </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f5f8fc;">
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">Client</th>
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">Date</th>
+              <th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">Montant HT</th>
+              <th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">TVA 5,5%</th>
+              <th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">TTC</th>
+              <th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">Encaissé</th>
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">Statut</th>
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">Devis signé</th>
+            </tr>
+          </thead>
+          <tbody id="fin-tbody"></tbody>
+        </table>
       </div>
     </div>
+
+    <!-- ══ ONGLET DÉPENSES ══ -->
+    <div id="crm-tab-depenses" style="display:none;">
+      <!-- Formulaire ajout dépense -->
+      <div style="background:white;border-radius:10px;border:1px solid #dce8f0;padding:20px;margin-bottom:20px;">
+        <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#0d1b2a;margin-bottom:16px;">➕ Ajouter une dépense</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label style="font-size:12px;color:#6b8299;font-weight:600;display:block;margin-bottom:4px;">Catégorie</label>
+            <select id="dep-cat" style="width:100%;padding:8px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;">
+              <option value="bornes">🔌 Bornes & matériel</option>
+              <option value="outillage">🔧 Outillage</option>
+              <option value="consommable">📦 Consommables</option>
+              <option value="carburant">⛽ Carburant</option>
+              <option value="protection">🦺 EPI & protection</option>
+              <option value="sous-traitance">👷 Sous-traitance</option>
+              <option value="admin">📄 Administratif</option>
+              <option value="autre">📁 Autre</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;color:#6b8299;font-weight:600;display:block;margin-bottom:4px;">Description</label>
+            <input type="text" id="dep-desc" placeholder="Borne Schneider EVlink..." style="width:100%;padding:8px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;color:#6b8299;font-weight:600;display:block;margin-bottom:4px;">Montant HT (€)</label>
+            <input type="number" id="dep-ht" placeholder="450.00" step="0.01" style="width:100%;padding:8px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;color:#6b8299;font-weight:600;display:block;margin-bottom:4px;">Date</label>
+            <input type="date" id="dep-date" style="width:100%;padding:8px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label style="font-size:12px;color:#6b8299;font-weight:600;display:block;margin-bottom:4px;">Fournisseur</label>
+            <input type="text" id="dep-fourn" placeholder="Amazon, Rexel, Total..." style="width:100%;padding:8px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;color:#6b8299;font-weight:600;display:block;margin-bottom:4px;">🔗 Lien Google Drive (facture)</label>
+            <input type="url" id="dep-drive" placeholder="https://drive.google.com/file/..." style="width:100%;padding:8px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;">
+          </div>
+        </div>
+        <button onclick="ajouterDepense()" style="background:var(--green);color:var(--ink);border:none;padding:9px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">✅ Ajouter la dépense</button>
+      </div>
+      <!-- Résumé par catégorie -->
+      <div id="dep-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;"></div>
+      <!-- Table dépenses -->
+      <div style="background:white;border-radius:10px;border:1px solid #dce8f0;overflow:hidden;">
+        <div style="padding:14px 20px;border-bottom:1px solid #dce8f0;display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#0d1b2a;margin:0;">🧾 Historique des dépenses</h3>
+          <select id="dep-filter-cat" onchange="renderDepenses()" style="padding:7px 12px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;">
+            <option value="">Toutes catégories</option>
+            <option value="bornes">Bornes & matériel</option>
+            <option value="outillage">Outillage</option>
+            <option value="consommable">Consommables</option>
+            <option value="carburant">Carburant</option>
+            <option value="protection">EPI & protection</option>
+            <option value="sous-traitance">Sous-traitance</option>
+            <option value="admin">Administratif</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f5f8fc;">
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">Date</th>
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">Catégorie</th>
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">Description</th>
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">Fournisseur</th>
+              <th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">HT</th>
+              <th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">TVA 20%</th>
+              <th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">TTC</th>
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;">Facture</th>
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#6b8299;"></th>
+            </tr>
+          </thead>
+          <tbody id="dep-tbody"></tbody>
+        </table>
+        <div id="dep-empty" style="display:none;padding:32px;text-align:center;color:#6b8299;">
+          <div style="font-size:28px;margin-bottom:8px;">🧾</div>
+          <p>Aucune dépense enregistrée</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ONGLET RAPPORTS ══ -->
+    <div id="crm-tab-rapports" style="display:none;">
+      <div style="background:white;border-radius:10px;border:1px solid #dce8f0;padding:24px;margin-bottom:20px;">
+        <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#0d1b2a;margin-bottom:20px;">📅 Période du rapport</h3>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+          <button onclick="setPeriode('mois')" id="rp-mois" style="padding:12px;border:2px solid #dce8f0;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;background:white;transition:all .2s;">📅 Ce mois</button>
+          <button onclick="setPeriode('trimestre')" id="rp-trim" style="padding:12px;border:2px solid #dce8f0;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;background:white;transition:all .2s;">📆 Ce trimestre</button>
+          <button onclick="setPeriode('annee')" id="rp-annee" style="padding:12px;border:2px solid #dce8f0;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;background:white;transition:all .2s;">🗓️ Cette année</button>
+          <button onclick="setPeriode('perso')" id="rp-perso" style="padding:12px;border:2px solid #dce8f0;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;background:white;transition:all .2s;">✏️ Personnalisé</button>
+        </div>
+        <div id="rp-perso-dates" style="display:none;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+          <div>
+            <label style="font-size:12px;color:#6b8299;font-weight:600;display:block;margin-bottom:4px;">Du</label>
+            <input type="date" id="rp-date-from" style="width:100%;padding:8px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;color:#6b8299;font-weight:600;display:block;margin-bottom:4px;">Au</label>
+            <input type="date" id="rp-date-to" style="width:100%;padding:8px;border:1px solid #dce8f0;border-radius:6px;font-size:13px;">
+          </div>
+        </div>
+        <!-- Preview rapport -->
+        <div id="rp-preview" style="background:#f5f8fc;border-radius:8px;padding:20px;margin-bottom:20px;"></div>
+        <button onclick="exporterRapport()" style="background:var(--ink);color:white;border:none;padding:12px 28px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+          ⬇️ Télécharger le rapport complet (.zip)
+        </button>
+      </div>
+    </div>
+
   </div>
 </div>
-
-<!-- Modal détail lead -->
-<div id="lead-modal" onclick="if(event.target===this)closeModal()" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
-  <div onclick="event.stopPropagation()" style="background:white;border-radius:12px;width:90%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.3);">
-    <div style="background:var(--ink);color:white;padding:18px 22px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;">
-      <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;" id="modal-title">Détail du lead</h3>
-      <button onclick="closeModal()" style="background:rgba(255,255,255,.15);border:none;color:white;font-size:18px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
-    </div>
-    <div id="modal-body" style="padding:22px;"></div>
-  </div>
-</div>
-
 <!-- Login CRM -->
 <div id="crm-login" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.7);align-items:center;justify-content:center;">
   <div style="background:white;border-radius:12px;padding:32px;width:320px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.3);">
@@ -685,19 +849,17 @@ document.addEventListener('click', function(e){
 });
 
 // ── CRM CONFIG ─────────────────────────────────
-var CRM_PWD = 'irve2024'; // Mot de passe — même valeur que CRM_PASSWORD dans Vercel
-var VERCEL_URL = 'https://vercel-dun-eta-98.vercel.app'; // Ton URL Vercel
+var CRM_PWD = 'irve2024';
+var VERCEL_URL = 'https://vercel-dun-eta-98.vercel.app';
 
+// ── API LEADS ──────────────────────────────────
 async function apiGetLeads() {
   const r = await fetch(VERCEL_URL + '/api/get-leads?t=' + Date.now(), {
-    headers: { 'Authorization': 'Bearer ' + CRM_PWD },
-    cache: 'no-store'
+    headers: { 'Authorization': 'Bearer ' + CRM_PWD }, cache: 'no-store'
   });
   if (!r.ok) throw new Error('Erreur ' + r.status);
-  const json = await r.json();
-  return json.leads || [];
+  return (await r.json()).leads || [];
 }
-
 async function apiUpdateLead(id, updates) {
   await fetch(VERCEL_URL + '/api/get-leads', {
     method: 'POST',
@@ -706,44 +868,484 @@ async function apiUpdateLead(id, updates) {
   });
 }
 
-var STATUTS = {
-  nouveau:  {label:'Nouveau',     color:'#0066cc', bg:'#e8f0ff'},
-  contact:  {label:'À contacter', color:'#f5a623', bg:'#fff4e0'},
-  relance:  {label:'Relance',     color:'#9b59b6', bg:'#f5eeff'},
-  devis:    {label:'Devis envoyé',color:'#0a1628', bg:'#e8ecf0'},
-  signe:    {label:'Signé',       color:'#00875a', bg:'#e8fff4'},
-  perdu:    {label:'Perdu',       color:'#dc3545', bg:'#ffeaea'},
-};
-
-function getLeads(){ try{return JSON.parse(localStorage.getItem('crm_leads')||'[]');}catch(e){return[];} }
-function saveLeads(l){ localStorage.setItem('crm_leads',JSON.stringify(l)); }
-
-// Ajouter un lead depuis le configurateur
-function addLead(data){
-  var leads = getLeads();
-  leads.unshift({
-    id:      Date.now(),
-    date:    new Date().toLocaleDateString('fr-FR'),
-    nom:     data.nom||'-',
-    email:   data.email||'-',
-    tel:     data.tel||'-',
-    cp:      data.cp||'-',
-    itype:   data.itype||'-',
-    nb_b:    data.nb_bornes||'1',
-    borne:   data.borne_nom||'-',
-    devis:   data.devis_net||'-',
-    tarif:   data.tarif_nom||'-',
-    roi:     data.roi||'-',
-    msg:     data.msg||'',
-    statut:  'nouveau',
-    notes:   '',
-    histo:   [{date:new Date().toLocaleDateString('fr-FR'),action:'Lead créé automatiquement'}],
+// ── API DÉPENSES (Upstash via get-leads endpoint réutilisé) ────────────
+async function apiGetDepenses() {
+  const r = await fetch(VERCEL_URL + '/api/get-depenses?t=' + Date.now(), {
+    headers: { 'Authorization': 'Bearer ' + CRM_PWD }, cache: 'no-store'
   });
-  saveLeads(leads);
+  if (!r.ok) return [];
+  return (await r.json()).depenses || [];
+}
+async function apiSaveDepenses(depenses) {
+  await fetch(VERCEL_URL + '/api/save-depenses', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + CRM_PWD, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ depenses })
+  });
 }
 
-// Exposer globalement pour le configurateur
-window.addLead = addLead;
+// ── STATUTS ────────────────────────────────────
+var STATUTS = {
+  nouveau:  {label:'Nouveau',      color:'#0066cc', bg:'#e8f0ff'},
+  contact:  {label:'À contacter',  color:'#f5a623', bg:'#fff4e0'},
+  relance:  {label:'Relance',      color:'#9b59b6', bg:'#f5eeff'},
+  devis:    {label:'Devis envoyé', color:'#0a1628', bg:'#e8ecf0'},
+  signe:    {label:'Signé',        color:'#00875a', bg:'#e8fff4'},
+  cloture:  {label:'Clôturé',      color:'#155724', bg:'#d4edda'},
+  perdu:    {label:'Perdu',        color:'#dc3545', bg:'#ffeaea'},
+};
+
+var DEP_CATS = {
+  bornes:        {label:'Bornes & matériel', ico:'🔌'},
+  outillage:     {label:'Outillage',         ico:'🔧'},
+  consommable:   {label:'Consommables',      ico:'📦'},
+  carburant:     {label:'Carburant',         ico:'⛽'},
+  protection:    {label:'EPI & protection',  ico:'🦺'},
+  'sous-traitance': {label:'Sous-traitance', ico:'👷'},
+  admin:         {label:'Administratif',     ico:'📄'},
+  autre:         {label:'Autre',             ico:'📁'},
+};
+
+// ── NAVIGATION ONGLETS ─────────────────────────
+function crmTab(tab) {
+  ['leads','finance','depenses','rapports'].forEach(function(t) {
+    document.getElementById('crm-tab-'+t).style.display = t===tab ? 'block' : 'none';
+    var btn = document.getElementById('ctab-'+t);
+    btn.style.background = t===tab ? 'var(--ink)' : 'white';
+    btn.style.color = t===tab ? 'white' : '#6b8299';
+  });
+  if(tab==='finance') renderFinance();
+  if(tab==='depenses') renderDepenses();
+  if(tab==='rapports') renderRapport();
+}
+
+// ── OUVERTURE CRM ─────────────────────────────
+function openCRM(e) {
+  e.preventDefault();
+  if(sessionStorage.getItem('crm_auth')==='1') { showCRM(); }
+  else { document.getElementById('crm-login').style.display='flex'; }
+}
+function checkPwd() {
+  var pwd = document.getElementById('crm-pwd').value;
+  if(pwd===CRM_PWD) {
+    sessionStorage.setItem('crm_auth','1');
+    document.getElementById('crm-login').style.display='none';
+    document.getElementById('crm-pwd').value='';
+    document.getElementById('crm-pwd-err').style.display='none';
+    showCRM();
+  } else { document.getElementById('crm-pwd-err').style.display='block'; }
+}
+function showCRM() {
+  document.getElementById('crm-panel').style.display='block';
+  document.getElementById('crm-overlay').style.display='block';
+  crmTab('leads');
+  renderLeads();
+}
+function closeCRM() {
+  document.getElementById('crm-panel').style.display='none';
+  document.getElementById('crm-overlay').style.display='none';
+}
+
+// ── HELPER FORMAT ─────────────────────────────
+function fmt(v) { return Number(v||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function kpi(label, val, color, sub) {
+  return '<div style="background:white;border-radius:8px;border:1px solid #dce8f0;padding:16px;text-align:center;">'
+    +'<div style="font-size:20px;font-weight:800;font-family:Syne,sans-serif;color:'+(color||'#0d1b2a')+';">'+val+'</div>'
+    +'<div style="font-size:11px;color:#6b8299;margin-top:3px;">'+label+'</div>'
+    +(sub?'<div style="font-size:10px;color:#aaa;margin-top:2px;">'+sub+'</div>':'')
+    +'</div>';
+}
+
+// ── ONGLET LEADS ──────────────────────────────
+async function renderLeads() {
+  var fStat   = document.getElementById('crm-filter-statut').value;
+  var fType   = document.getElementById('crm-filter-type').value;
+  var fSearch = (document.getElementById('crm-search').value||'').toLowerCase();
+  var leads;
+  try {
+    leads = await apiGetLeads();
+  } catch(e) {
+    document.getElementById('crm-subtitle').textContent = 'Erreur: ' + e.message;
+    document.getElementById('crm-tbody').innerHTML = '<tr><td colspan="8" style="padding:32px;text-align:center;color:#dc3545;">❌ ' + e.message + '</td></tr>';
+    return;
+  }
+  // Stats
+  var stats={nouveau:0,contact:0,relance:0,devis:0,signe:0,cloture:0,perdu:0};
+  leads.forEach(function(l){if(stats[l.statut]!==undefined) stats[l.statut]++;});
+  document.getElementById('crm-stats').innerHTML = Object.keys(STATUTS).map(function(k){
+    return '<div style="background:'+STATUTS[k].bg+';border:1px solid '+STATUTS[k].color+'33;border-radius:8px;padding:10px;text-align:center;cursor:pointer;" onclick="document.getElementById(\'crm-filter-statut\').value=\''+k+'\';renderLeads()">'
+      +'<div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:'+STATUTS[k].color+';">'+stats[k]+'</div>'
+      +'<div style="font-size:10px;color:#666;margin-top:2px;">'+STATUTS[k].label+'</div></div>';
+  }).join('');
+  document.getElementById('crm-subtitle').textContent = leads.length+' lead'+(leads.length>1?'s':'')+' total';
+  // Filtrage
+  var filtered = leads.filter(function(l) {
+    if(fStat && l.statut!==fStat) return false;
+    if(fType && !l.itype.toLowerCase().includes(fType)) return false;
+    if(fSearch && !(l.nom+l.email+(l.cp||'')).toLowerCase().includes(fSearch)) return false;
+    return true;
+  });
+  var tbody = document.getElementById('crm-tbody');
+  var empty = document.getElementById('crm-empty');
+  if(!filtered.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  var devisHT = function(l) {
+    var ttc = parseFloat((l.devis||'0').replace(/\s/g,'').replace(',','.')) || 0;
+    return ttc/1.055;
+  };
+  var encaisse = function(l) {
+    var ht = devisHT(l);
+    if(l.statut==='cloture') return ht;
+    if(l.statut==='signe') return ht*0.3;
+    return 0;
+  };
+  tbody.innerHTML = filtered.map(function(l,i) {
+    var s = STATUTS[l.statut]||STATUTS.nouveau;
+    var ht = devisHT(l);
+    var enc = encaisse(l);
+    return '<tr style="border-bottom:1px solid #eee;'+(i%2===0?'background:#fafafa;':'')+'" onmouseover="this.style.background=\'#f0f7ff\'" onmouseout="this.style.background=\''+(i%2===0?'#fafafa':'white')+'\'">'
+      +'<td style="padding:11px 14px;"><strong style="font-size:13px;color:#0d1b2a;">'+l.nom+'</strong><br><span style="font-size:11px;color:#888;">'+(l.ville||l.cp||'-')+'</span></td>'
+      +'<td style="padding:11px 14px;font-size:12px;color:#444;"><div>📧 '+l.email+'</div><div>📞 '+(l.tel||'-')+'</div></td>'
+      +'<td style="padding:11px 14px;font-size:12px;color:#555;">'+l.itype+'<br><span style="color:#888;">'+l.nb_b+' borne(s)</span></td>'
+      +'<td style="padding:11px 14px;font-size:13px;font-weight:700;color:#0d1b2a;">'+fmt(ht)+' €</td>'
+      +'<td style="padding:11px 14px;font-size:13px;font-weight:700;color:'+(enc>0?'#00875a':'#aaa')+';">'+(enc>0?fmt(enc)+' €':'-')+'</td>'
+      +'<td style="padding:11px 14px;font-size:12px;color:#888;">'+l.date+'</td>'
+      +'<td style="padding:11px 14px;">'
+        +'<select onchange="updateStatut('+l.id+',this.value)" style="padding:4px 7px;border-radius:5px;border:1px solid '+s.color+';background:'+s.bg+';color:'+s.color+';font-size:12px;font-weight:700;cursor:pointer;">'
+        +Object.keys(STATUTS).map(function(k){ return '<option value="'+k+'"'+(l.statut===k?' selected':'')+'>'+STATUTS[k].label+'</option>'; }).join('')
+        +'</select></td>'
+      +'<td style="padding:11px 14px;display:flex;gap:5px;">'
+        +'<button onclick="openDetail('+l.id+')" style="background:#e8f0ff;color:#0066cc;border:none;padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;">👁</button>'
+        +'<button onclick="demanderLienDevis('+l.id+')" style="background:#e8fff4;color:#00875a;border:none;padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;'+(!l.devis_drive?'':'opacity:.5')+'">📎</button>'
+        +'<button onclick="deleteLead('+l.id+')" style="background:#ffeaea;color:#dc3545;border:none;padding:4px 9px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;">🗑</button>'
+      +'</td></tr>';
+  }).join('');
+}
+
+async function updateStatut(id, statut) {
+  var s = STATUTS[statut]||STATUTS.nouveau;
+  try { await apiUpdateLead(id, { statut, histo_action: 'Statut → '+s.label }); renderLeads(); }
+  catch(e) { alert('Erreur: '+e.message); }
+}
+async function deleteLead(id) {
+  if(!confirm('Supprimer ce lead ?')) return;
+  try { await apiUpdateLead(id, { statut: '__delete__' }); renderLeads(); }
+  catch(e) { alert('Erreur: '+e.message); }
+}
+async function demanderLienDevis(id) {
+  var lien = prompt('Coller le lien Google Drive du devis signé:');
+  if(!lien) return;
+  try { await apiUpdateLead(id, { devis_drive: lien, histo_action: '📎 Devis signé ajouté (Drive)' }); renderLeads(); }
+  catch(e) { alert('Erreur: '+e.message); }
+}
+function openDetail(id) {
+  apiGetLeads().then(function(leads) {
+    var l = leads.find(function(x){return x.id===id;});
+    if(!l) return;
+    document.getElementById('modal-title').textContent = '👤 '+l.nom+' — '+l.date;
+    document.getElementById('modal-body').innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">'
+      +'<div><p style="font-size:11px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:8px;">Coordonnées</p>'
+      +'<p style="font-size:13px;margin-bottom:3px;"><strong>'+l.nom+'</strong></p>'
+      +'<p style="font-size:13px;color:#1a1a1a;margin-bottom:2px;">📧 '+l.email+'</p>'
+      +'<p style="font-size:13px;color:#1a1a1a;margin-bottom:2px;">📞 '+(l.tel||'-')+'</p>'
+      +'<p style="font-size:13px;color:#1a1a1a;">📍 '+(l.adresse||(l.adr&&l.adr!=='-'?l.adr+' ':'')+l.cp+(l.ville&&l.ville!=='-'?' '+l.ville:''))+'</p></div>'
+      +'<div><p style="font-size:11px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:8px;">Projet</p>'
+      +'<p style="font-size:13px;margin-bottom:2px;">Type : <strong>'+l.itype+'</strong></p>'
+      +'<p style="font-size:13px;margin-bottom:2px;">Borne : '+l.borne+'</p>'
+      +'<p style="font-size:13px;margin-bottom:2px;">Nb bornes : '+l.nb_b+'</p>'
+      +'<p style="font-size:13px;margin-bottom:2px;">Devis TTC : <strong style="color:#00875a;">'+l.devis+' €</strong></p>'
+      +'<p style="font-size:13px;">Tarif reco : '+l.tarif+'</p></div></div>'
+      +(l.devis_drive?'<div style="background:#e8fff4;border-left:3px solid #00875a;padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:12px;font-size:13px;"><a href="'+l.devis_drive+'" target="_blank" style="color:#00875a;font-weight:700;">📎 Voir le devis signé (Drive)</a></div>':'')
+      +(l.msg?'<div style="background:#f5f9ff;border-left:3px solid #0066cc;padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:12px;font-size:13px;color:#1a1a1a;">💬 '+l.msg+'</div>':'')
+      +'<div style="margin-bottom:12px;">'
+      +'<p style="font-size:11px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:6px;">Notes</p>'
+      +'<textarea id="note-'+l.id+'" style="width:100%;border:1px solid #dce8f0;border-radius:6px;padding:8px;font-size:13px;resize:vertical;min-height:70px;">'+( l.notes||'')+'</textarea>'
+      +'<button onclick="saveNote('+l.id+')" style="background:#0a1628;color:white;border:none;padding:7px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;">💾 Sauvegarder</button></div>'
+      +'<div><p style="font-size:11px;font-weight:700;color:#0a1628;text-transform:uppercase;margin-bottom:6px;">Historique</p>'
+      +'<div style="display:flex;flex-direction:column;gap:5px;">'
+      +(l.histo||[]).map(function(h){ return '<div style="display:flex;gap:8px;font-size:12px;color:#333;"><span style="color:#00875a;flex-shrink:0;font-weight:600;">'+h.date+'</span><span>'+h.action+'</span></div>'; }).join('')
+      +'</div></div>'
+      +'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #eee;display:flex;gap:8px;flex-wrap:wrap;">'
+      +'<button onclick="addHistoNote('+l.id+')" style="background:#f5f9ff;color:#0066cc;border:1px solid #0066cc;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;">📞 Appel</button>'
+      +'<button onclick="addHistoRelance('+l.id+')" style="background:#fff4e0;color:#f5a623;border:1px solid #f5a623;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;">🔄 Relance</button>'
+      +'<button onclick="addHistoDevis('+l.id+')" style="background:#e8fff4;color:#00875a;border:1px solid #00875a;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;">📄 Devis envoyé</button>'
+      +'<button onclick="updateStatut('+l.id+',\'signe\')" style="background:#d4edda;color:#155724;border:1px solid #155724;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;">✅ Signé</button>'
+      +'<button onclick="updateStatut('+l.id+',\'cloture\')" style="background:#0a1628;color:white;border:none;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;">🏁 Clôturer</button>'
+      +'</div>';
+    document.getElementById('lead-modal').style.display='flex';
+  });
+}
+function closeModal(){ document.getElementById('lead-modal').style.display='none'; }
+async function saveNote(id){
+  try { await apiUpdateLead(id, { notes: document.getElementById('note-'+id).value, histo_action: 'Note ajoutée' }); alert('Sauvegardé'); }
+  catch(e) { alert('Erreur: '+e.message); }
+}
+async function addHistoAction(id, action, statut){
+  var updates = { histo_action: action };
+  if(statut) updates.statut = statut;
+  try { await apiUpdateLead(id, updates); openDetail(id); renderLeads(); }
+  catch(e) { alert('Erreur: '+e.message); }
+}
+function addHistoNote(id){ addHistoAction(id,'📞 Appel effectué','contact'); }
+function addHistoRelance(id){ addHistoAction(id,'🔄 Relance planifiée','relance'); }
+function addHistoDevis(id){ addHistoAction(id,'📄 Devis envoyé','devis'); }
+
+async function exportLeads(){
+  var leads; try { leads = await apiGetLeads(); } catch(e){ alert('Erreur: '+e.message); return; }
+  if(!leads.length){ alert('Aucun lead'); return; }
+  var csv = 'Nom,Email,Tel,Adresse,CP,Ville,Type,Borne,Devis TTC,Statut,Date,Notes\n';
+  leads.forEach(function(l){
+    csv += [l.nom,l.email,l.tel||'-',l.adr||'-',l.cp||'-',l.ville||'-',l.itype,l.borne,l.devis,l.statut,l.date,'"'+(l.notes||'').replace(/"/g,"'")+'"'].join(',')+'\n';
+  });
+  var a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='leads-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+// ── ONGLET FINANCES ───────────────────────────
+async function renderFinance() {
+  var leads; try { leads = await apiGetLeads(); } catch(e){ return; }
+  var now = new Date();
+  var fromEl = document.getElementById('fin-date-from');
+  var toEl   = document.getElementById('fin-date-to');
+  var filtered = leads.filter(function(l){
+    if(l.statut!=='signe'&&l.statut!=='cloture') return false;
+    if(fromEl&&fromEl.value){ var d=new Date(l.date.split('/').reverse().join('-')); if(d<new Date(fromEl.value)) return false; }
+    if(toEl&&toEl.value){ var d2=new Date(l.date.split('/').reverse().join('-')); if(d2>new Date(toEl.value)) return false; }
+    return true;
+  });
+  var devisHT = function(l){ return (parseFloat((l.devis||'0').replace(/\s/g,'').replace(',','.')) || 0)/1.055; };
+  var encaisse = function(l){ var ht=devisHT(l); return l.statut==='cloture'?ht:ht*0.3; };
+  var caTotal=0, caEncaisse=0, tvaCol=0;
+  filtered.forEach(function(l){ caTotal+=devisHT(l); caEncaisse+=encaisse(l); tvaCol+=devisHT(l)*0.055; });
+  var dep=[]; try { dep=await apiGetDepenses(); } catch(e){}
+  var depTotal=dep.reduce(function(s,d){return s+(parseFloat(d.ht)||0);},0);
+  var tvaDed=depTotal*0.20;
+  var tvaAverser=Math.max(0,tvaCol-tvaDed);
+  var benBrut=caEncaisse-depTotal;
+  var tauxUr=parseFloat(document.getElementById('taux-urssaf').value)||22;
+  var tauxRet=parseFloat(document.getElementById('taux-retraite').value)||8;
+  var charges=benBrut>0?benBrut*(tauxUr+tauxRet)/100:0;
+  var benNet=benBrut-charges;
+  document.getElementById('fin-kpis').innerHTML =
+    kpi('CA total (devis HT)', fmt(caTotal)+' €', '#0066cc', filtered.length+' chantiers')+
+    kpi('Encaissé (30%/100%)', fmt(caEncaisse)+' €', '#00875a')+
+    kpi('Dépenses HT', fmt(depTotal)+' €', '#dc3545')+
+    kpi('Bénéfice net estimé', fmt(benNet)+' €', benNet>=0?'#00875a':'#dc3545', 'après charges');
+  document.getElementById('fin-tva').innerHTML =
+    kpi('TVA collectée (5,5%)', fmt(tvaCol)+' €', '#0066cc')+
+    kpi('TVA déductible (20%)', fmt(tvaDed)+' €', '#00875a')+
+    kpi('TVA à reverser', fmt(tvaAverser)+' €', tvaAverser>0?'#dc3545':'#00875a');
+  document.getElementById('fin-charges').innerHTML =
+    kpi('Bénéfice brut', fmt(benBrut)+' €', '#0066cc')+
+    kpi('URSSAF ('+tauxUr+'%)', fmt(benBrut>0?benBrut*tauxUr/100:0)+' €', '#f5a623')+
+    kpi('Retraite ('+tauxRet+'%)', fmt(benBrut>0?benBrut*tauxRet/100:0)+' €', '#9b59b6')+
+    kpi('Bénéfice net', fmt(benNet)+' €', benNet>=0?'#00875a':'#dc3545');
+  document.getElementById('fin-tbody').innerHTML = filtered.length ? filtered.map(function(l,i){
+    var ht=devisHT(l),tva=ht*0.055,ttc=ht+tva,enc=encaisse(l);
+    return '<tr style="border-bottom:1px solid #eee;'+(i%2===0?'background:#fafafa;':'')+'">'
+      +'<td style="padding:10px 14px;font-size:13px;color:#1a1a1a;"><strong>'+l.nom+'</strong></td>'
+      +'<td style="padding:10px 14px;font-size:12px;color:#555;">'+l.date+'</td>'
+      +'<td style="padding:10px 14px;font-size:13px;text-align:right;color:#1a1a1a;">'+fmt(ht)+' €</td>'
+      +'<td style="padding:10px 14px;font-size:13px;text-align:right;color:#555;">'+fmt(tva)+' €</td>'
+      +'<td style="padding:10px 14px;font-size:13px;text-align:right;color:#1a1a1a;">'+fmt(ttc)+' €</td>'
+      +'<td style="padding:10px 14px;font-size:13px;text-align:right;font-weight:700;color:#00875a;">'+fmt(enc)+' €</td>'
+      +'<td style="padding:10px 14px;"><span style="background:'+STATUTS[l.statut].bg+';color:'+STATUTS[l.statut].color+';padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;">'+STATUTS[l.statut].label+'</span></td>'
+      +'<td style="padding:10px 14px;">'+(l.devis_drive?'<a href="'+l.devis_drive+'" target="_blank" style="color:#00875a;font-size:12px;font-weight:700;">📎 Drive</a>':'<button onclick="demanderLienDevis('+l.id+')" style="background:#f0f4f8;border:1px solid #dce8f0;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer;">+ Ajouter</button>')+'</td>'
+      +'</tr>';
+  }).join('') : '<tr><td colspan="8" style="padding:24px;text-align:center;color:#aaa;">Aucun chantier signé ou clôturé</td></tr>';
+}
+function resetFinDates(){ document.getElementById('fin-date-from').value=''; document.getElementById('fin-date-to').value=''; renderFinance(); }
+
+// ── ONGLET DÉPENSES ───────────────────────────
+var _depenses = [];
+async function renderDepenses() {
+  try { _depenses = await apiGetDepenses(); } catch(e){ _depenses=[]; }
+  // Init date par défaut
+  if(!document.getElementById('dep-date').value) {
+    document.getElementById('dep-date').valueAsDate = new Date();
+  }
+  var fCat = document.getElementById('dep-filter-cat').value;
+  var filtered = fCat ? _depenses.filter(function(d){return d.cat===fCat;}) : _depenses;
+  // KPIs par catégorie
+  var totByCat = {};
+  _depenses.forEach(function(d){ totByCat[d.cat]=(totByCat[d.cat]||0)+(parseFloat(d.ht)||0); });
+  var kpisHtml = Object.keys(DEP_CATS).map(function(k){
+    var v=totByCat[k]||0;
+    return v>0?'<div style="background:white;border-radius:8px;border:1px solid #dce8f0;padding:12px;text-align:center;">'
+      +'<div style="font-size:16px;font-weight:800;font-family:Syne,sans-serif;color:#dc3545;">'+fmt(v)+' €</div>'
+      +'<div style="font-size:11px;color:#6b8299;margin-top:2px;">'+DEP_CATS[k].ico+' '+DEP_CATS[k].label+'</div></div>':'';
+  }).join('');
+  document.getElementById('dep-kpis').innerHTML = kpisHtml ||
+    '<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:8px;">Aucune dépense enregistrée</div>';
+  // Table
+  var tbody = document.getElementById('dep-tbody');
+  var empty = document.getElementById('dep-empty');
+  if(!filtered.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = filtered.map(function(d,i){
+    var ht=parseFloat(d.ht)||0, tva=ht*0.20, ttc=ht+tva;
+    var cat=DEP_CATS[d.cat]||{label:d.cat,ico:'📁'};
+    return '<tr style="border-bottom:1px solid #eee;'+(i%2===0?'background:#fafafa;':'')+'">'
+      +'<td style="padding:10px 14px;font-size:12px;color:#555;">'+d.date+'</td>'
+      +'<td style="padding:10px 14px;font-size:12px;color:#1a1a1a;">'+cat.ico+' '+cat.label+'</td>'
+      +'<td style="padding:10px 14px;font-size:13px;color:#1a1a1a;"><strong>'+d.desc+'</strong></td>'
+      +'<td style="padding:10px 14px;font-size:12px;color:#555;">'+(d.fourn||'-')+'</td>'
+      +'<td style="padding:10px 14px;font-size:13px;text-align:right;color:#dc3545;font-weight:700;">'+fmt(ht)+' €</td>'
+      +'<td style="padding:10px 14px;font-size:12px;text-align:right;color:#555;">'+fmt(tva)+' €</td>'
+      +'<td style="padding:10px 14px;font-size:13px;text-align:right;color:#1a1a1a;">'+fmt(ttc)+' €</td>'
+      +'<td style="padding:10px 14px;">'+(d.drive?'<a href="'+d.drive+'" target="_blank" style="color:#00875a;font-size:12px;font-weight:700;">📎 Facture</a>':'<span style="color:#aaa;font-size:11px;">—</span>')+'</td>'
+      +'<td style="padding:10px 14px;"><button onclick="supprimerDepense(\''+d.id+'\')" style="background:#ffeaea;color:#dc3545;border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer;">🗑</button></td>'
+      +'</tr>';
+  }).join('');
+}
+async function ajouterDepense() {
+  var ht = parseFloat(document.getElementById('dep-ht').value);
+  var desc = document.getElementById('dep-desc').value.trim();
+  if(!desc || !ht || ht<=0){ alert('Description et montant HT requis'); return; }
+  var dep = {
+    id: Date.now().toString(),
+    cat: document.getElementById('dep-cat').value,
+    desc: desc,
+    ht: ht,
+    date: document.getElementById('dep-date').value || new Date().toLocaleDateString('fr-FR'),
+    fourn: document.getElementById('dep-fourn').value,
+    drive: document.getElementById('dep-drive').value,
+  };
+  try {
+    _depenses = await apiGetDepenses();
+  } catch(e){ _depenses=[]; }
+  _depenses.unshift(dep);
+  try {
+    await apiSaveDepenses(_depenses);
+    document.getElementById('dep-ht').value='';
+    document.getElementById('dep-desc').value='';
+    document.getElementById('dep-fourn').value='';
+    document.getElementById('dep-drive').value='';
+    renderDepenses();
+  } catch(e){ alert('Erreur sauvegarde: '+e.message); }
+}
+async function supprimerDepense(id) {
+  if(!confirm('Supprimer cette dépense ?')) return;
+  _depenses = _depenses.filter(function(d){return d.id!==id;});
+  try { await apiSaveDepenses(_depenses); renderDepenses(); }
+  catch(e){ alert('Erreur: '+e.message); }
+}
+
+// ── ONGLET RAPPORTS ───────────────────────────
+var _rp_periode = 'mois';
+function setPeriode(p) {
+  _rp_periode = p;
+  ['mois','trim','annee','perso'].forEach(function(id){
+    var btn = document.getElementById('rp-'+id);
+    if(!btn) return;
+    btn.style.background = (id===p||('trimestre'===p&&id==='trim')) ? 'var(--ink)' : 'white';
+    btn.style.color = (id===p||('trimestre'===p&&id==='trim')) ? 'white' : '#6b8299';
+    btn.style.borderColor = (id===p||('trimestre'===p&&id==='trim')) ? 'var(--ink)' : '#dce8f0';
+  });
+  document.getElementById('rp-perso-dates').style.display = p==='perso' ? 'grid' : 'none';
+  renderRapport();
+}
+async function renderRapport() {
+  var now = new Date();
+  var from, to = new Date(now);
+  if(_rp_periode==='mois'){ from=new Date(now.getFullYear(),now.getMonth(),1); }
+  else if(_rp_periode==='trimestre'){ var q=Math.floor(now.getMonth()/3); from=new Date(now.getFullYear(),q*3,1); }
+  else if(_rp_periode==='annee'){ from=new Date(now.getFullYear(),0,1); }
+  else {
+    var f=document.getElementById('rp-date-from').value;
+    var t=document.getElementById('rp-date-to').value;
+    from=f?new Date(f):new Date(now.getFullYear(),0,1);
+    to=t?new Date(t):now;
+  }
+  var leads=[]; try { leads=await apiGetLeads(); } catch(e){}
+  var dep=[];   try { dep=await apiGetDepenses(); } catch(e){}
+  var inPeriod = function(dateStr){
+    var parts=dateStr.split('/');
+    var d=parts.length===3?new Date(parts[2],parts[1]-1,parts[0]):new Date(dateStr);
+    return d>=from && d<=to;
+  };
+  var filtL = leads.filter(function(l){ return (l.statut==='signe'||l.statut==='cloture') && inPeriod(l.date); });
+  var filtD = dep.filter(function(d){ return inPeriod(d.date); });
+  var devisHT = function(l){ return (parseFloat((l.devis||'0').replace(/\s/g,'').replace(',','.')) || 0)/1.055; };
+  var enc = function(l){ var ht=devisHT(l); return l.statut==='cloture'?ht:ht*0.3; };
+  var caTotal=filtL.reduce(function(s,l){return s+devisHT(l);},0);
+  var caEnc=filtL.reduce(function(s,l){return s+enc(l);},0);
+  var depTotal=filtD.reduce(function(s,d){return s+(parseFloat(d.ht)||0);},0);
+  var tvaCol=caTotal*0.055, tvaDed=depTotal*0.20;
+  var benBrut=caEnc-depTotal;
+  var tauxUr=parseFloat(document.getElementById('taux-urssaf')?document.getElementById('taux-urssaf').value:22)||22;
+  var tauxRet=parseFloat(document.getElementById('taux-retraite')?document.getElementById('taux-retraite').value:8)||8;
+  var charges=benBrut>0?benBrut*(tauxUr+tauxRet)/100:0;
+  var benNet=benBrut-charges;
+  var periodLabel = _rp_periode==='mois'?'Ce mois':_rp_periode==='trimestre'?'Ce trimestre':_rp_periode==='annee'?'Cette année':'Période personnalisée';
+  document.getElementById('rp-preview').innerHTML =
+    '<h4 style="font-family:Syne,sans-serif;font-weight:800;color:#0d1b2a;margin-bottom:16px;">'+periodLabel+' — du '+from.toLocaleDateString('fr-FR')+' au '+to.toLocaleDateString('fr-FR')+'</h4>'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">'
+    +kpi('CA HT facturé', fmt(caTotal)+' €', '#0066cc', filtL.length+' chantier'+(filtL.length>1?'s':''))
+    +kpi('Encaissé', fmt(caEnc)+' €', '#00875a')
+    +kpi('Dépenses HT', fmt(depTotal)+' €', '#dc3545', filtD.length+' ligne'+(filtD.length>1?'s':''))
+    +kpi('Bénéfice net', fmt(benNet)+' €', benNet>=0?'#00875a':'#dc3545')
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">'
+    +kpi('TVA collectée', fmt(tvaCol)+' €', '#0066cc')
+    +kpi('TVA déductible', fmt(tvaDed)+' €', '#00875a')
+    +kpi('TVA à reverser', fmt(Math.max(0,tvaCol-tvaDed))+' €', '#f5a623')
+    +'</div>';
+  // Stocker pour export
+  window._rpData = { periodLabel, from, to, caTotal, caEnc, depTotal, tvaCol, tvaDed, benBrut, charges, benNet, filtL, filtD, tauxUr, tauxRet };
+}
+async function exporterRapport() {
+  if(!window._rpData){ alert('Générez d\'abord un aperçu'); return; }
+  var d = window._rpData;
+  // CSV rapport
+  var csv = 'RAPPORT FINANCIER\n';
+  csv += 'Période,'+d.periodLabel+'\n';
+  csv += 'Du,'+d.from.toLocaleDateString('fr-FR')+'\n';
+  csv += 'Au,'+d.to.toLocaleDateString('fr-FR')+'\n\n';
+  csv += 'REVENUS\n';
+  csv += 'CA HT facturé,'+fmt(d.caTotal)+' €\n';
+  csv += 'Montant encaissé,'+fmt(d.caEnc)+' €\n\n';
+  csv += 'TVA\n';
+  csv += 'TVA collectée (5,5%),'+fmt(d.tvaCol)+' €\n';
+  csv += 'TVA déductible (20%),'+fmt(d.tvaDed)+' €\n';
+  csv += 'TVA à reverser,'+fmt(Math.max(0,d.tvaCol-d.tvaDed))+' €\n\n';
+  csv += 'CHARGES\n';
+  csv += 'Dépenses HT,'+fmt(d.depTotal)+' €\n';
+  csv += 'URSSAF ('+d.tauxUr+'%),'+fmt(d.benBrut>0?d.benBrut*d.tauxUr/100:0)+' €\n';
+  csv += 'Retraite ('+d.tauxRet+'%),'+fmt(d.benBrut>0?d.benBrut*d.tauxRet/100:0)+' €\n\n';
+  csv += 'RÉSULTAT\n';
+  csv += 'Bénéfice brut,'+fmt(d.benBrut)+' €\n';
+  csv += 'Charges sociales,'+fmt(d.charges)+' €\n';
+  csv += 'Bénéfice net,'+fmt(d.benNet)+' €\n\n';
+  csv += '\nCHANTIERS\n';
+  csv += 'Client,Date,Devis HT,TVA,TTC,Encaissé,Statut,Lien devis\n';
+  d.filtL.forEach(function(l){
+    var ht=(parseFloat((l.devis||'0').replace(/\s/g,'').replace(',','.'))||0)/1.055;
+    var enc=l.statut==='cloture'?ht:ht*0.3;
+    csv += [l.nom,l.date,fmt(ht),fmt(ht*0.055),fmt(ht*1.055),fmt(enc),l.statut,l.devis_drive||''].join(',')+'\n';
+  });
+  csv += '\nDÉPENSES\n';
+  csv += 'Date,Catégorie,Description,Fournisseur,HT,TVA,TTC,Facture\n';
+  d.filtD.forEach(function(dep){
+    var ht=parseFloat(dep.ht)||0;
+    csv += [dep.date,dep.cat,dep.desc,dep.fourn||'',fmt(ht),fmt(ht*0.2),fmt(ht*1.2),dep.drive||''].join(',')+'\n';
+  });
+  // Liens Drive
+  var liens = '\nLIENS GOOGLE DRIVE\n\nDevis signés:\n';
+  d.filtL.forEach(function(l){ if(l.devis_drive) liens += l.nom+' ('+l.date+'): '+l.devis_drive+'\n'; });
+  liens += '\nFactures dépenses:\n';
+  d.filtD.forEach(function(dep){ if(dep.drive) liens += dep.desc+' ('+dep.date+'): '+dep.drive+'\n'; });
+  // Télécharger le CSV (pas de ZIP natif en JS pur sans lib)
+  var nom = 'rapport-'+new Date().toISOString().slice(0,10)+'.csv';
+  var blob = new Blob(['\uFEFF'+csv+liens], {type:'text/csv;charset=utf-8'});
+  var a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nom; a.click();
+  alert('Rapport CSV téléchargé !\n\nPour obtenir un ZIP avec toutes vos factures, ouvrez les liens Google Drive listés dans le fichier CSV.');
+}
+
+
 
 function openCRM(e){
   e.preventDefault();
