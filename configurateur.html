@@ -1369,10 +1369,10 @@ function generateDevisPDF(){
     fw('normal');fs(7.5);tc(140,170,200);
     dt(s(ENTREPRISE.adresse)+' - '+s(ENTREPRISE.cp_ville),14,20);
     dt(s(ENTREPRISE.tel)+' | '+s(ENTREPRISE.email),14,25);
-    fw('bold');fs(20);tc(200,241,53);dt('DEVIS',W-14,18,{align:'right'});
+    fw('bold');fs(20);tc(200,241,53);dt('DEVIS',W-14,12,{align:'right'});
     fw('normal');fs(8);tc(140,170,200);
-    dt('N: '+ref,W-14,24,{align:'right'});
-    dt('Date: '+today,W-14,29,{align:'right'});
+    dt('N: '+ref,W-14,19,{align:'right'});
+    dt('Date: '+today,W-14,25,{align:'right'});
 
     var y=38;
     var nomC=document.getElementById('c-nom').value||'Client';
@@ -1404,7 +1404,7 @@ function generateDevisPDF(){
 
     // Section objet
     bg(10,22,40);doc.rect(14,y,W-28,6,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('OBJET DE LA PRESTATION',16,y+4.2);y+=8;
+    fw('bold');fs(8.5);tc(255,255,255);dt('OBJET DE LA PRESTATION',16,y+4);y+=8;
     var objRows=[
       ['Reference borne',s(b.id)+' - '+s(b.nom)],['Marque',s(b.marque)],
       ['Puissance',b.kw+' kW '+(b.phases==='tri'?'Triphase':'Monophase')],
@@ -1424,7 +1424,7 @@ function generateDevisPDF(){
 
     // Section devis
     bg(10,22,40);doc.rect(14,y,W-28,6,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('DETAIL DU DEVIS',16,y+4.2);y+=8;
+    fw('bold');fs(8.5);tc(255,255,255);dt('DETAIL DU DEVIS',16,y+4);y+=8;
     bg(26,46,66);doc.rect(14,y-3,W-28,6,'F');
     fw('bold');fs(7.5);tc(255,255,255);dt('Designation',17,y);dt('Montant HT',W-16,y,{align:'right'});y+=6;
     fw('normal');fs(8.5);
@@ -1448,7 +1448,7 @@ function generateDevisPDF(){
     // Section recommandation
     if(y>220){doc.addPage();bg(255,255,255);doc.rect(0,0,W,297,'F');y=15;}
     bg(10,22,40);doc.rect(14,y,W-28,6,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('RECOMMANDATION ABONNEMENT ELECTRIQUE',16,y+4.2);y+=8;
+    fw('bold');fs(8.5);tc(255,255,255);dt('RECOMMANDATION ABONNEMENT ELECTRIQUE',16,y+4);y+=8;
     var recoRows=[
       ['Fournisseur recommande',s(_res[0].n)+' - '+s(_res[0].o),true],
       ['Facture annuelle estimee',n(_res[0].ft)+' EUR/an',false],
@@ -1500,6 +1500,9 @@ function generatePDF(){
     var p=_params, top=_res[0], d=_devis, b=_sel;
     var W=210;
     var N=[10,14,20],G=[107,133,168],BL=[240,247,255],LM=[0,180,100];
+
+    // Fond blanc page 1
+    bg(255,255,255);doc.rect(0,0,W,297,'F');
     var s=function(v){
       if(v===null||v===undefined) return '-';
       return String(v)
@@ -1539,9 +1542,11 @@ function generatePDF(){
     doc.setFontSize(9);tc.apply(null,LM);dt(n(top.ft)+' EUR/an',W-16,y+14,{align:'right'});
     y+=28;
 
-    // Paramètres
-    fw('bold');doc.setFontSize(10);tc.apply(null,BL);dt("Parametres de l'etude",14,y);y+=2;
-    bg(30,45,65);doc.rect(14,y,W-28,0.4,'F');y+=5;
+    // Paramètres — fond blanc, texte sombre
+    bg(245,248,252);doc.rect(14,y-2,W-28,38,'F');
+    doc.setDrawColor(210,220,230);doc.setLineWidth(0.3);doc.rect(14,y-2,W-28,38,'S');
+    fw('bold');doc.setFontSize(10);tc(10,22,40);dt("Parametres de l'etude",14,y+4);
+    bg(10,22,40);doc.rect(14,y+6,W-28,0.4,'F');
     var rows=[
       ['Client',document.getElementById('c-nom').value||'-'],
       ['Email',document.getElementById('c-email').value||'-'],
@@ -1553,46 +1558,82 @@ function generatePDF(){
       ['Nb bornes',String(d.nbB)],
     ];
     fw('normal');doc.setFontSize(8.5);
+    y+=8;
     rows.forEach(function(r,i){
       var col=i<5?14:W/2+4,row=i<5?y+(i*6):y+((i-5)*6);
-      tc.apply(null,G);dt(r[0],col,row);tc.apply(null,BL);dt(s(r[1]),col+42,row);
+      tc(100,120,140);dt(r[0],col,row);tc(20,40,60);dt(s(r[1]),col+42,row);
     });
-    y+=34;
+    y+=32;
 
-    // Analyse
+    // Analyse — fond blanc
+    bg(245,248,252);doc.rect(14,y-2,W-28,8,'F');
+    fw('bold');doc.setFontSize(10);tc(10,22,40);dt('Analyse',14,y+4);
+    bg(10,22,40);doc.rect(14,y+6,W-28,0.4,'F');y+=10;
+    fw('normal');doc.setFontSize(8);tc(60,80,100);
     var conseil=document.getElementById('res-conseil').innerText||'-';
-    fw('bold');doc.setFontSize(10);tc.apply(null,BL);dt('Analyse',14,y);y+=2;
-    bg(30,45,65);doc.rect(14,y,W-28,0.4,'F');y+=5;
-    fw('normal');doc.setFontSize(8);tc.apply(null,G);
     var lines=doc.splitTextToSize(s(conseil),W-30);
     lines.forEach(function(l){
-      if(y>270){doc.addPage();bg.apply(null,N);doc.rect(0,0,W,297,'F');y=15;}
+      if(y>270){
+        doc.addPage();
+        // Fond blanc sur toutes les pages
+        bg(255,255,255);doc.rect(0,0,W,297,'F');
+        // En-tête léger page suivante
+        bg(10,22,40);doc.rect(0,0,W,8,'F');
+        doc.setFontSize(7);tc.apply(null,G);dt('IRVE Studio - Etude Tarifaire (suite)',14,5.5);
+        y=18;
+      }
       dt(l,14,y);y+=5;
     });
-    y+=4;
-
-    // Classement
-    if(y>220){doc.addPage();bg.apply(null,N);doc.rect(0,0,W,297,'F');y=15;}
-    fw('bold');doc.setFontSize(10);tc.apply(null,BL);dt('Classement des offres',14,y);y+=2;
-    bg(30,45,65);doc.rect(14,y,W-28,0.4,'F');y+=5;
-    var cols=[14,22,66,114,138,154,170,186];
-    bg(20,30,45);doc.rect(14,y-3,W-28,7,'F');
-    doc.setFontSize(7);tc.apply(null,G);
-    ['#','Fournisseur','Offre','Abo.','HC','HP','Base','Facture/an'].forEach(function(h,i){dt(h,cols[i]+1,y+1);});
     y+=6;
+
+    // Classement — fond blanc, alternance gris clair
+    if(y>200){
+      doc.addPage();
+      bg(255,255,255);doc.rect(0,0,W,297,'F');
+      bg(10,22,40);doc.rect(0,0,W,8,'F');
+      doc.setFontSize(7);tc.apply(null,G);dt('IRVE Studio - Classement des offres',14,5.5);
+      y=18;
+    }
+    bg(245,248,252);doc.rect(14,y-2,W-28,8,'F');
+    fw('bold');doc.setFontSize(10);tc(10,22,40);dt('Classement des offres',14,y+4);
+    bg(10,22,40);doc.rect(14,y+6,W-28,0.4,'F');y+=10;
+
+    // En-tête tableau
+    var cols=[14,22,66,114,138,154,170,186];
+    bg(10,22,40);doc.rect(14,y-2,W-28,7,'F');
+    doc.setFontSize(7);tc(200,220,240);
+    ['#','Fournisseur','Offre','Abo.','HC','HP','Base','Facture/an'].forEach(function(h,i){dt(h,cols[i]+1,y+2);});
+    y+=7;
     var fmtK=function(v){return v!=null?(v*100).toFixed(1)+'c':'-';};
     _res.forEach(function(r,i){
-      if(y>278){doc.addPage();bg.apply(null,N);doc.rect(0,0,W,297,'F');y=15;}
+      if(y>278){
+        doc.addPage();
+        bg(255,255,255);doc.rect(0,0,W,297,'F');
+        bg(10,22,40);doc.rect(0,0,W,8,'F');
+        doc.setFontSize(7);tc.apply(null,G);dt('IRVE Studio - Classement (suite)',14,5.5);
+        // Ré-afficher en-tête tableau
+        bg(10,22,40);doc.rect(14,10,W-28,7,'F');
+        tc(200,220,240);
+        ['#','Fournisseur','Offre','Abo.','HC','HP','Base','Facture/an'].forEach(function(h,j){dt(h,cols[j]+1,14);});
+        y=20;
+      }
       var hc='-',hp='-',base='-';
       if(r.t==='base') base=fmtK(r.kb);
       else if(r.t==='hchp'){hc=fmtK(r.hc);hp=fmtK(r.hp);}
-      if(i%2===0){bg(14,22,34);doc.rect(14,y-3,W-28,6,'F');}
+      // Alternance fond gris clair / blanc
+      if(i%2===0){bg(240,245,250);doc.rect(14,y-2,W-28,6,'F');}
+      else{bg(255,255,255);doc.rect(14,y-2,W-28,6,'F');}
+      // Ligne surlignée si meilleure offre
+      if(i===0){bg(232,255,235);doc.rect(14,y-2,W-28,6,'F');}
       doc.setFontSize(7.5);
-      tc.apply(null,i===0?LM:BL);dt(i===0?'*':String(i+1),cols[0]+1,y);
-      tc.apply(null,BL);dt(s(r.n).substring(0,16),cols[1]+1,y);dt(s(r.o).substring(0,20),cols[2]+1,y);dt(String(r.a.toFixed(0)),cols[3]+1,y);
-      tc.apply(null,G);dt(hc,cols[4]+1,y);dt(hp,cols[5]+1,y);dt(base,cols[6]+1,y);
-      tc.apply(null,i===0?LM:BL);dt(n(r.ft),cols[7]+1,y);y+=6;
+      // Texte sombre lisible
+      tc(i===0?0:40,i===0?130:60,i===0?60:80);dt(i===0?'★':String(i+1),cols[0]+1,y+1);
+      tc(20,40,60);dt(s(r.n).substring(0,16),cols[1]+1,y+1);dt(s(r.o).substring(0,20),cols[2]+1,y+1);dt(String(r.a.toFixed(0)),cols[3]+1,y+1);
+      tc(80,100,120);dt(hc,cols[4]+1,y+1);dt(hp,cols[5]+1,y+1);dt(base,cols[6]+1,y+1);
+      tc(i===0?0:20,i===0?130:40,i===0?60:60);fw(i===0?'bold':'normal');dt(n(r.ft),cols[7]+1,y+1);fw('normal');
+      y+=6;
     });
+    y+=4;
 
     // Devis résumé
     if(y>240){doc.addPage();bg.apply(null,N);doc.rect(0,0,W,297,'F');y=15;}
