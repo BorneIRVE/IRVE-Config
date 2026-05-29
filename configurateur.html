@@ -2363,7 +2363,7 @@ function closeAdm(){document.getElementById('adm-overlay').classList.remove('on'
 function chkPwd(){if(document.getElementById('adm-pwd').value===getPwd()){document.getElementById('adm-login').style.display='none';document.getElementById('adm-panel').style.display='block';rdrBornes();rdrTarifs();rdrOpts();}else{document.getElementById('adm-err').style.display='block';}}
 function chgPwd(){const o=document.getElementById('s-old').value,n=document.getElementById('s-new').value,c=document.getElementById('s-conf').value,m=document.getElementById('s-msg');if(o!==getPwd()){m.style.color='var(--coral)';m.textContent='Mot de passe actuel incorrect.';return;}if(n.length<4){m.style.color='var(--coral)';m.textContent='4 caractères minimum.';return;}if(n!==c){m.style.color='var(--coral)';m.textContent='Les mots de passe ne correspondent pas.';return;}localStorage.setItem(PWD_KEY,n);m.style.color='var(--lime)';m.textContent='✅ Mot de passe modifié.';}
 function rdrEntreprise(){
-  var e=loadEntreprise();
+  var e = ENTREPRISE || {};
   var set=function(id,v){var el=document.getElementById(id);if(el)el.value=v||'';};
   set('e-send-email',e.send_email);
   set('e-domaine',e.domaine);
