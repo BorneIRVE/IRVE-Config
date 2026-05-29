@@ -18,17 +18,33 @@ body{font-family:'Instrument Sans',sans-serif;background:var(--ink);color:var(--
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   background:radial-gradient(ellipse 60% 40% at 15% 15%,rgba(200,241,53,.07),transparent 60%),
              radial-gradient(ellipse 50% 35% at 85% 85%,rgba(56,189,248,.08),transparent 60%);}
-.hdr{position:relative;z-index:10;padding:26px 40px 0;display:flex;align-items:center;gap:14px;}
-.logo{width:44px;height:44px;border-radius:11px;background:var(--lime);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.logo-t h1{font-family:'Cabinet Grotesk',sans-serif;font-size:21px;font-weight:900;color:var(--white);letter-spacing:-.5px;}
-.logo-t p{font-size:12px;color:var(--muted);margin-top:1px;}
-.hdr-r{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.hdr{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,15,26,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--bord);padding:0 6vw;display:flex;align-items:center;justify-content:space-between;height:64px;}
+.logo-wrap{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo{width:36px;height:36px;background:var(--lime);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.logo-t{font-family:'Cabinet Grotesk',sans-serif;font-weight:900;font-size:18px;color:var(--white);}
+.logo-t span{color:var(--lime);}
+.hdr-r{display:flex;align-items:center;gap:10px;}
+/* Hamburger configurateur */
+.cfg-hamburger{display:flex;align-items:center;gap:10px;cursor:pointer;background:var(--card);border:1px solid var(--bord);padding:7px 12px;border-radius:8px;transition:all .2s;}
+.cfg-hamburger:hover{background:var(--ink2);border-color:var(--muted);}
+.cfg-hamburger .bars{display:flex;flex-direction:column;gap:4px;}
+.cfg-hamburger .bar{width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .3s;}
+.cfg-hamburger .cfg-label{font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--white);}
+.cfg-dropdown{position:absolute;top:70px;right:6vw;background:var(--card);border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.4);border:1px solid var(--bord);width:260px;z-index:200;opacity:0;transform:translateY(-8px);pointer-events:none;transition:all .2s;overflow:hidden;}
+.cfg-dropdown.open{opacity:1;transform:translateY(0);pointer-events:all;}
+.cfg-nd-sec{padding:6px 0;}
+.cfg-nd-sec+.cfg-nd-sec{border-top:1px solid var(--bord2);}
+.cfg-nd-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:8px 16px 4px;}
+.cfg-nd-item{display:flex;align-items:center;gap:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:13px;transition:background .15s;cursor:pointer;border:none;background:none;width:100%;text-align:left;}
+.cfg-nd-item:hover{background:var(--ink2);}
+.cfg-nd-ico{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:var(--ink2);}
+.cfg-nd-txt strong{display:block;font-weight:600;font-size:13px;color:var(--white);line-height:1.2;}
+.cfg-nd-txt span{font-size:11px;color:var(--muted);}
+/* Pill tarifs */
 .pill{display:flex;align-items:center;gap:6px;background:rgba(200,241,53,.1);border:1px solid rgba(200,241,53,.25);padding:5px 11px;border-radius:20px;color:var(--lime);font-size:11px;}
 .dot{width:6px;height:6px;background:var(--lime);border-radius:50%;animation:blink 2s infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.adm-btn{font-size:11px;color:var(--muted);cursor:pointer;padding:4px 9px;border-radius:6px;border:1px solid transparent;background:none;transition:all .2s;}
-.adm-btn:hover{color:var(--lime);border-color:rgba(200,241,53,.25);}
-main{position:relative;z-index:1;max-width:1060px;margin:28px auto;padding:0 22px 80px;}
+main{position:relative;z-index:1;max-width:1060px;margin:92px auto 0;padding:0 22px 80px;}
 /* PROGRESS */
 .prog-wrap{margin-bottom:32px;}
 .prog-lbls{display:flex;justify-content:space-between;margin-bottom:9px;}
@@ -209,12 +225,32 @@ input[type=checkbox]{width:auto;accent-color:var(--lime);}
 </div>
 
 <header class="hdr">
-  <div class="logo">⚡</div>
-  <div class="logo-t"><h1>IRVE Studio</h1><p>Configurateur borne & étude tarifaire</p></div>
+  <a href="https://borneirve.github.io/irve-studio/" class="logo-wrap">
+    <div class="logo">⚡</div>
+    <span class="logo-t">Volt<span>Expert</span></span>
+  </a>
   <div class="hdr-r">
-    <div class="pill"><span class="dot"></span>Tarifs à jour</div>
-    <span id="tarif-date" style="font-size:11px;color:var(--muted);">—</span>
-    <button class="adm-btn" onclick="openAdm()">⚙️ Admin</button>
+    <div class="pill"><span class="dot"></span><span id="tarif-date">Tarifs à jour</span></div>
+    <button class="cfg-hamburger" id="cfg-hamburger-btn" onclick="toggleCfgMenu()" aria-label="Menu">
+      <div class="bars"><span class="bar"></span><span class="bar"></span><span class="bar"></span></div>
+      <span class="cfg-label">Menu</span>
+    </button>
+  </div>
+  <div class="cfg-dropdown" id="cfg-dropdown">
+    <div class="cfg-nd-sec">
+      <div class="cfg-nd-lbl">Navigation</div>
+      <a href="https://borneirve.github.io/irve-studio/" class="cfg-nd-item">
+        <span class="cfg-nd-ico">🏠</span>
+        <div class="cfg-nd-txt"><strong>Page d'accueil</strong><span>Retour au site</span></div>
+      </a>
+    </div>
+    <div class="cfg-nd-sec">
+      <div class="cfg-nd-lbl">Administration</div>
+      <button class="cfg-nd-item" onclick="closeCfgMenu();openAdm()">
+        <span class="cfg-nd-ico">⚙️</span>
+        <div class="cfg-nd-txt"><strong>Panneau admin</strong><span>Bornes, tarifs, options</span></div>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -680,6 +716,17 @@ const TB = {date:'Mai 2026',f:[
 const HCHP_IDS=['edf_hchp','engie_hchp','total_hchp','ohm_hchp','mint_hchp','oct_go','oct_int','ekw'];
 
 // ═══════════════════════════════════════════════
+// ── MENU HAMBURGER CONFIGURATEUR ───────────────
+function toggleCfgMenu(){
+  document.getElementById('cfg-dropdown').classList.toggle('open');
+}
+function closeCfgMenu(){
+  document.getElementById('cfg-dropdown').classList.remove('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#cfg-hamburger-btn')&&!e.target.closest('#cfg-dropdown')) closeCfgMenu();
+});
+
 // CATALOGUE (localStorage avec fallback)
 // ═══════════════════════════════════════════════
 const CAT_KEY='irve_cat', PWD_KEY='irve_pwd';

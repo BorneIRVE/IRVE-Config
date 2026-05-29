@@ -866,26 +866,26 @@ function openDetail(id){
     document.getElementById('modal-title').textContent = '👤 '+l.nom+' — '+l.date;
     document.getElementById('modal-body').innerHTML =
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">'
-      +'<div><p style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:8px;">Coordonnées</p>'
+      +'<div><p style="font-size:11px;font-weight:700;color:#333;text-transform:uppercase;margin-bottom:8px;">Coordonnées</p>'
       +'<p style="font-size:13px;margin-bottom:4px;"><strong>'+l.nom+'</strong></p>'
-      +'<p style="font-size:13px;color:#555;margin-bottom:2px;">📧 '+l.email+'</p>'
-      +'<p style="font-size:13px;color:#555;margin-bottom:2px;">📞 '+l.tel+'</p>'
-      +'<p style="font-size:13px;color:#555;">📍 '+l.cp+'</p></div>'
-      +'<div><p style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:8px;">Projet</p>'
+      +'<p style="font-size:13px;color:#1a1a1a;margin-bottom:2px;">📧 '+l.email+'</p>'
+      +'<p style="font-size:13px;color:#1a1a1a;margin-bottom:2px;">📞 '+l.tel+'</p>'
+      +'<p style="font-size:13px;color:#1a1a1a;">📍 '+l.cp+'</p></div>'
+      +'<div><p style="font-size:11px;font-weight:700;color:#333;text-transform:uppercase;margin-bottom:8px;">Projet</p>'
       +'<p style="font-size:13px;margin-bottom:2px;">Installation : <strong>'+l.itype+'</strong></p>'
       +'<p style="font-size:13px;margin-bottom:2px;">Borne : '+l.borne+'</p>'
       +'<p style="font-size:13px;margin-bottom:2px;">Nb bornes : '+l.nb_b+'</p>'
       +'<p style="font-size:13px;margin-bottom:2px;">Devis net : <strong style="color:#00875a;">'+l.devis+' EUR TTC</strong></p>'
       +'<p style="font-size:13px;">Tarif reco : '+l.tarif+'</p></div></div>'
-      +(l.msg?'<div style="background:#f5f9ff;border-left:3px solid #0066cc;padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:16px;font-size:13px;color:#555;">💬 '+l.msg+'</div>':'')
+      +(l.msg?'<div style="background:#f5f9ff;border-left:3px solid #0066cc;padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:16px;font-size:13px;color:#1a1a1a;">💬 '+l.msg+'</div>':'')
       +'<div style="margin-bottom:16px;">'
-      +'<p style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:8px;">Notes</p>'
+      +'<p style="font-size:11px;font-weight:700;color:#333;text-transform:uppercase;margin-bottom:8px;">Notes</p>'
       +'<textarea id="note-'+l.id+'" style="width:100%;border:1px solid #dce8f0;border-radius:6px;padding:10px;font-size:13px;resize:vertical;min-height:80px;" placeholder="Ajouter une note...">'+l.notes+'</textarea>'
       +'<button onclick="saveNote('+l.id+')" style="background:#0a1628;color:white;border:none;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;">💾 Sauvegarder</button>'
       +'</div>'
-      +'<div><p style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:8px;">Historique</p>'
+      +'<div><p style="font-size:11px;font-weight:700;color:#333;text-transform:uppercase;margin-bottom:8px;">Historique</p>'
       +'<div style="display:flex;flex-direction:column;gap:6px;">'
-      +(l.histo||[]).map(function(h){ return '<div style="display:flex;gap:10px;align-items:flex-start;font-size:12px;color:#555;"><span style="color:#00875a;flex-shrink:0;">'+h.date+'</span><span>'+h.action+'</span></div>'; }).join('')
+      +(l.histo||[]).map(function(h){ return '<div style="display:flex;gap:10px;align-items:flex-start;font-size:12px;color:#1a1a1a;"><span style="color:#00875a;flex-shrink:0;">'+h.date+'</span><span>'+h.action+'</span></div>'; }).join('')
       +'</div></div>'
       +'<div style="margin-top:16px;padding-top:16px;border-top:1px solid #eee;display:flex;gap:8px;flex-wrap:wrap;">'
       +'<button onclick="addHistoNote('+l.id+')" style="background:#f5f9ff;color:#0066cc;border:1px solid #0066cc;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">📞 Appel effectué</button>'
