@@ -1476,13 +1476,39 @@ function generateDevisPDF(){
     y+=38;
 
     // Mentions légales
-    doc.setDrawColor(200,200,200);doc.line(14,y,W-14,y);y+=4;
-    fw('normal');fs(6.5);tc(140,140,140);
-    var mens=[
-      'Devis valable 30 jours. TVA 5,5% (art.279-0 bis CGI). Paiement: 30% commande, solde reception. Retractation 14 jours.',
-      s(ENTREPRISE.nom)+' - '+s(ENTREPRISE.forme)+' - SIRET '+s(ENTREPRISE.siret)+' - TVA '+s(ENTREPRISE.tva_intra)+' - RCS '+s(ENTREPRISE.rcs),
+    // ── CGV & MENTIONS LÉGALES ──────────────────
+    if(y>230){doc.addPage();bg(255,255,255);doc.rect(0,0,W,297,'F');y=15;}
+    doc.setDrawColor(180,195,210);doc.setLineWidth(0.3);doc.line(14,y,W-14,y);y+=5;
+
+    // Titre CGV
+    fw('bold');fs(8);tc(10,22,40);dt('CONDITIONS GENERALES DE VENTE ET MENTIONS LEGALES',14,y);y+=5;
+    doc.setDrawColor(0,135,75);doc.line(14,y,W-14,y);y+=4;
+
+    fw('normal');fs(6.5);tc(80,90,100);
+    var cgv=[
+      ['1. VALIDITE DU DEVIS','Ce devis est valable 30 jours a compter de sa date d\'emission. Passe ce delai, les tarifs pourront etre revises. Toute modification du projet apres acceptation pourra entrainer un avenant tarifaire.'],
+      ['2. MODALITES DE PAIEMENT','30% a la commande, solde a la reception des travaux. Paiement par virement bancaire ou cheque. En cas de retard de paiement, des penalites seront appliquees au taux legal majore de 5 points, ainsi qu\'une indemnite forfaitaire de recouvrement de 40 EUR (art. L.441-10 C. com.).'],
+      ['3. DELAI D\'EXECUTION','Delai indicatif : 2 a 4 semaines apres reception de l\'acompte et fourniture des documents necessaires. Ce delai peut varier selon disponibilite du materiel et contraintes de chantier. Aucune penalite ne pourra etre reclamee pour un retard imputable a des causes exterieures.'],
+      ['4. GARANTIES','Main d\'oeuvre garantie 2 ans. Materiel garanti selon conditions constructeur (mentionnees au devis). Garantie decennale et RC Professionnelle souscrites. Attestations disponibles sur demande.'],
+      ['5. TVA A TAUX REDUIT','TVA a 5,5% applicable conformement a l\'art. 279-0 bis du CGI pour les travaux d\'amelioration, de transformation et d\'entretien portant sur des locaux a usage d\'habitation acheves depuis plus de 2 ans. Le client certifie sur l\'honneur que ces conditions sont remplies. Toute fausse declaration engage sa seule responsabilite.'],
+      ['6. PRIME ADVENIR','L\'aide ADVENIR est soumise aux conditions d\'eligibilite de l\'AVERE-France et peut etre modifiee ou supprimee sans preavis. Son obtention ne saurait etre garantie. En cas de non-eligibilite constatee apres travaux, le montant TTC plein reste du par le client.'],
+      ['7. DROIT DE RETRACTATION','Conformement aux art. L.221-18 et suivants du Code de la consommation (clients particuliers), vous disposez d\'un delai de 14 jours a compter de la signature pour exercer votre droit de retractation, sans motif. Formulaire disponible sur demande. Passe ce delai, l\'acompte est acquis.'],
+      ['8. PROPRIETE & RESPONSABILITE','Le materiel demeure propriete du prestataire jusqu\'au paiement integral. Les risques sont transferes a la livraison. Le prestataire ne saurait etre tenu responsable des dommages indirects ou immateriels.'],
+      ['9. LITIGES','En cas de litige, une solution amiable sera recherchee en priorite. A defaut, le client peut recourir a la mediation de la consommation (art. L.616-1 C. conso.). Les tribunaux competents sont ceux du siege du prestataire.'],
+      ['10. MENTIONS LEGALES',s(ENTREPRISE.nom)+' - '+s(ENTREPRISE.forme)+' au capital social variable - SIRET '+s(ENTREPRISE.siret)+' - TVA intracommunautaire '+s(ENTREPRISE.tva_intra)+' - RCS '+s(ENTREPRISE.rcs)+' - Assurance RC Pro et Decennale souscrites.'],
     ];
-    mens.forEach(function(m){dt(m,14,y);y+=4;});
+
+    cgv.forEach(function(art){
+      if(y>280){doc.addPage();bg(255,255,255);doc.rect(0,0,W,297,'F');y=15;}
+      fw('bold');tc(10,22,40);dt(art[0],14,y);y+=4;
+      fw('normal');tc(80,90,100);
+      var lines=doc.splitTextToSize(s(art[1]),W-28);
+      lines.forEach(function(l){
+        if(y>285){doc.addPage();bg(255,255,255);doc.rect(0,0,W,297,'F');y=15;}
+        dt(l,14,y);y+=3.5;
+      });
+      y+=2;
+    });
 
     return doc.output('datauristring').split(',')[1];
   } catch(e){ console.error('generateDevisPDF error:',e); return null; }
