@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- v202605291404-->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -665,9 +665,9 @@ footer{background:var(--ink);border-top:1px solid var(--border);padding:40px 6vw
           <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#0d1b2a;margin:0;">📊 Charges sociales estimées</h3>
           <div style="display:flex;gap:8px;align-items:center;">
             <label style="font-size:12px;color:#6b8299;">Taux URSSAF %</label>
-            <input type="number" id="taux-urssaf" value="22" min="0" max="50" style="width:60px;padding:4px 8px;border:1px solid #dce8f0;border-radius:4px;font-size:13px;" oninput="renderFinance()">
+            <input type="number" id="taux-urssaf" value="22" min="0" max="50" style="width:60px;padding:4px 8px;border:1px solid #dce8f0;border-radius:4px;font-size:13px;" oninput="calcObjectif()">
             <label style="font-size:12px;color:#6b8299;">Retraite %</label>
-            <input type="number" id="taux-retraite" value="8" min="0" max="30" style="width:60px;padding:4px 8px;border:1px solid #dce8f0;border-radius:4px;font-size:13px;" oninput="renderFinance()">
+            <input type="number" id="taux-retraite" value="8" min="0" max="30" style="width:60px;padding:4px 8px;border:1px solid #dce8f0;border-radius:4px;font-size:13px;" oninput="calcObjectif()">
           </div>
         </div>
         <div id="fin-charges" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;"></div>
@@ -678,7 +678,7 @@ footer{background:var(--ink);border-top:1px solid var(--border);padding:40px 6vw
           <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#0d1b2a;margin:0;">🎯 Objectif salaire</h3>
           <div style="display:flex;gap:8px;align-items:center;">
             <label style="font-size:12px;color:#6b8299;">Objectif net mensuel</label>
-            <input type="number" id="objectif-salaire" value="1500" min="0" style="width:90px;padding:4px 8px;border:1px solid #dce8f0;border-radius:4px;font-size:13px;" oninput="renderFinance()">
+            <input type="number" id="objectif-salaire" value="1500" min="0" style="width:90px;padding:4px 8px;border:1px solid #dce8f0;border-radius:4px;font-size:13px;" oninput="calcObjectif()">
             <span style="font-size:12px;color:#6b8299;">€/mois</span>
           </div>
         </div>
@@ -1171,21 +1171,9 @@ async function renderFinance() {
     kpi('Retraite ('+tauxRet+'%)', fmt(benBrut>0?benBrut*tauxRet/100:0)+' €', '#9b59b6')+
     kpi('Bénéfice net', fmt(benNet)+' €', benNet>=0?'#00875a':'#dc3545');
 
-  // Calcul objectif salaire
-  var objEl = document.getElementById('objectif-salaire');
-  var objMensuel = parseFloat(objEl ? objEl.value : 1500) || 1500;
-  var tauxCharges = (tauxUr + tauxRet) / 100;
-  // Pour avoir X€ net : CA HT nécessaire = X / (1 - tauxCharges) + dépenses
-  var caNecess = objMensuel / (1 - tauxCharges) + depTotal;
-  var caRestant = Math.max(0, caNecess - caEnc);
-  var avancement = caNecess > 0 ? Math.min(100, Math.round(caEnc / caNecess * 100)) : 100;
-  var objHtml = kpi('CA HT nécessaire', fmt(caNecess)+' €', '#0066cc', 'pour '+fmt(objMensuel)+' € net')+
-    kpi('Déjà encaissé', fmt(caEnc)+' €', caEnc>=caNecess?'#00875a':'#f5a623', avancement+'% de l\'objectif')+
-    kpi('Reste à facturer', caRestant>0?fmt(caRestant)+' €':'Objectif atteint ✅', caRestant>0?'#dc3545':'#00875a', caRestant>0?(Math.ceil(caRestant/500)+' devis ~500€ HT'):'');
-  // Barre de progression
-  objHtml += '<div style="grid-column:1/-1;background:#f0f4f8;border-radius:8px;overflow:hidden;height:8px;">'
-    +'<div style="width:'+avancement+'%;height:100%;background:'+(avancement>=100?'#00875a':avancement>=50?'#f5a623':'#dc3545')+';transition:width .5s;border-radius:8px;"></div></div>';
-  document.getElementById('fin-objectif').innerHTML = objHtml;
+  // Stocker les données pour recalcul objectif
+  window._finData = { caEnc: caEnc, depTotal: depTotal };
+  calcObjectif();
   document.getElementById('fin-tbody').innerHTML = filtered.length ? filtered.map(function(l,i){
     var ht=devisHT(l),tva=ht*0.055,ttc=ht+tva,enc=encaisse(l);
     return '<tr style="border-bottom:1px solid #eee;'+(i%2===0?'background:#fafafa;':'')+'">'
@@ -1199,6 +1187,27 @@ async function renderFinance() {
       +'<td style="padding:10px 14px;">'+(l.devis_drive?'<a href="'+l.devis_drive+'" target="_blank" style="color:#00875a;font-size:12px;font-weight:700;">📎 Drive</a>':'<button onclick="demanderLienDevis('+l.id+')" style="background:#f0f4f8;border:1px solid #dce8f0;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer;">+ Ajouter</button>')+'</td>'
       +'</tr>';
   }).join('') : '<tr><td colspan="8" style="padding:24px;text-align:center;color:#aaa;">Aucun chantier signé ou clôturé</td></tr>';
+}
+function calcObjectif(){
+  if(!window._finData) return;
+  var caEnc = window._finData.caEnc || 0;
+  var depTotal = window._finData.depTotal || 0;
+  var tauxUr  = parseFloat(document.getElementById('taux-urssaf') ? document.getElementById('taux-urssaf').value : 22) || 22;
+  var tauxRet = parseFloat(document.getElementById('taux-retraite') ? document.getElementById('taux-retraite').value : 8) || 8;
+  var objEl   = document.getElementById('objectif-salaire');
+  var objMensuel = parseFloat(objEl ? objEl.value : 1500) || 1500;
+  var tauxCharges = (tauxUr + tauxRet) / 100;
+  var caNecess = objMensuel / (1 - tauxCharges) + depTotal;
+  var caRestant = Math.max(0, caNecess - caEnc);
+  var avancement = caNecess > 0 ? Math.min(100, Math.round(caEnc / caNecess * 100)) : 100;
+  var el = document.getElementById('fin-objectif');
+  if(!el) return;
+  var objHtml = kpi('CA HT nécessaire', fmt(caNecess)+' €', '#0066cc', 'pour '+fmt(objMensuel)+' € net')+
+    kpi('Déjà encaissé', fmt(caEnc)+' €', caEnc>=caNecess?'#00875a':'#f5a623', avancement+"% de l'objectif")+
+    kpi('Reste à facturer', caRestant>0?fmt(caRestant)+' €':'Objectif atteint ✅', caRestant>0?'#dc3545':'#00875a', caRestant>0?(Math.ceil(caRestant/500)+' devis ~500€ HT'):'');
+  objHtml += '<div style="grid-column:1/-1;background:#f0f4f8;border-radius:8px;overflow:hidden;height:8px;">'
+    +'<div style="width:'+avancement+'%;height:100%;background:'+(avancement>=100?'#00875a':avancement>=50?'#f5a623':'#dc3545')+';transition:width .5s;border-radius:8px;"></div></div>';
+  el.innerHTML = objHtml;
 }
 function resetFinDates(){ document.getElementById('fin-date-from').value=''; document.getElementById('fin-date-to').value=''; renderFinance(); }
 
