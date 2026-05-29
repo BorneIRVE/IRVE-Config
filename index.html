@@ -1192,25 +1192,29 @@ async function renderFinance() {
 }
 function calcObjectif(){
   if(!window._finData) window._finData = { caEnc: 0, depTotal: 0 };
-  var caEnc = window._finData.caEnc || 0;
+  var caEnc    = window._finData.caEnc    || 0;
   var depTotal = window._finData.depTotal || 0;
-  var tauxUr  = parseFloat(document.getElementById('taux-urssaf') ? document.getElementById('taux-urssaf').value : 22) || 22;
-  var tauxRet = parseFloat(document.getElementById('taux-retraite') ? document.getElementById('taux-retraite').value : 8) || 8;
-  var objEl   = document.getElementById('objectif-salaire');
+  var tauxUr   = parseFloat(document.getElementById('taux-urssaf')   ? document.getElementById('taux-urssaf').value   : 22) || 22;
+  var tauxRet  = parseFloat(document.getElementById('taux-retraite') ? document.getElementById('taux-retraite').value : 8)  || 8;
+  var objEl    = document.getElementById('objectif-salaire');
   var objMensuel = parseFloat(objEl ? objEl.value : 1500) || 1500;
   var tauxCharges = (tauxUr + tauxRet) / 100;
-  var caNecess = objMensuel / (1 - tauxCharges) + depTotal;
+  var caNecess  = objMensuel / (1 - tauxCharges) + depTotal;
   var caRestant = Math.max(0, caNecess - caEnc);
   var avancement = caNecess > 0 ? Math.min(100, Math.round(caEnc / caNecess * 100)) : 100;
   var el = document.getElementById('fin-objectif');
   if(!el) return;
-  var objHtml = kpi('CA HT nécessaire', fmt(caNecess)+' €', '#0066cc', 'pour '+fmt(objMensuel)+' € net')+
-    kpi('Déjà encaissé', fmt(caEnc)+' €', caEnc>=caNecess?'#00875a':'#f5a623', avancement+"% de l'objectif")+
-    kpi('Reste à facturer', caRestant>0?fmt(caRestant)+' €':'Objectif atteint ✅', caRestant>0?'#dc3545':'#00875a', caRestant>0?(Math.ceil(caRestant/500)+' devis ~500€ HT'):'');
-  objHtml += '<div style="grid-column:1/-1;background:#f0f4f8;border-radius:8px;overflow:hidden;height:8px;">'
-    +'<div style="width:'+avancement+'%;height:100%;background:'+(avancement>=100?'#00875a':avancement>=50?'#f5a623':'#dc3545')+';transition:width .5s;border-radius:8px;"></div></div>';
+  var pct = avancement + "% de l'objectif";
+  var reste = caRestant > 0 ? fmt(caRestant) + ' EUR' : 'Objectif atteint';
+  var resteSub = caRestant > 0 ? Math.ceil(caRestant / 500) + ' devis ~500 EUR HT' : '';
+  var objHtml = kpi('CA HT necessaire', fmt(caNecess) + ' EUR', '#0066cc', 'pour ' + fmt(objMensuel) + ' EUR net') +
+    kpi('Deja encaisse', fmt(caEnc) + ' EUR', caEnc >= caNecess ? '#00875a' : '#f5a623', pct) +
+    kpi('Reste a facturer', reste, caRestant > 0 ? '#dc3545' : '#00875a', resteSub);
+  objHtml += '<div style="grid-column:1/-1;background:#f0f4f8;border-radius:8px;overflow:hidden;height:8px;">' +
+    '<div style="width:' + avancement + '%;height:100%;background:' + (avancement >= 100 ? '#00875a' : avancement >= 50 ? '#f5a623' : '#dc3545') + ';transition:width .5s;border-radius:8px;"></div></div>';
   el.innerHTML = objHtml;
 }
+
 function resetFinDates(){ document.getElementById('fin-date-from').value=''; document.getElementById('fin-date-to').value=''; renderFinance(); }
 
 // ── ONGLET DÉPENSES ───────────────────────────
