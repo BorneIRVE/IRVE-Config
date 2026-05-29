@@ -672,6 +672,18 @@ footer{background:var(--ink);border-top:1px solid var(--border);padding:40px 6vw
         </div>
         <div id="fin-charges" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;"></div>
       </div>
+      <!-- Objectif salaire -->
+      <div style="background:white;border-radius:10px;border:1px solid #dce8f0;padding:20px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#0d1b2a;margin:0;">🎯 Objectif salaire</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <label style="font-size:12px;color:#6b8299;">Objectif net mensuel</label>
+            <input type="number" id="objectif-salaire" value="1500" min="0" style="width:90px;padding:4px 8px;border:1px solid #dce8f0;border-radius:4px;font-size:13px;" oninput="renderFinance()">
+            <span style="font-size:12px;color:#6b8299;">€/mois</span>
+          </div>
+        </div>
+        <div id="fin-objectif" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;"></div>
+      </div>
       <!-- Détail par chantier -->
       <div style="background:white;border-radius:10px;border:1px solid #dce8f0;overflow:hidden;">
         <div style="padding:16px 20px;border-bottom:1px solid #dce8f0;display:flex;justify-content:space-between;align-items:center;">
@@ -1112,6 +1124,14 @@ async function renderFinance() {
   var now = new Date();
   var fromEl = document.getElementById('fin-date-from');
   var toEl   = document.getElementById('fin-date-to');
+  // Initialiser sur le mois en cours si vide
+  if(fromEl && !fromEl.value){
+    fromEl.value = now.getFullYear()+'-'+(String(now.getMonth()+1).padStart(2,'0'))+'-01';
+  }
+  if(toEl && !toEl.value){
+    var lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0);
+    toEl.value = lastDay.getFullYear()+'-'+(String(lastDay.getMonth()+1).padStart(2,'0'))+'-'+(String(lastDay.getDate()).padStart(2,'0'));
+  }
   var filtered = leads.filter(function(l){
     if(l.statut!=='signe'&&l.statut!=='cloture') return false;
     if(fromEl&&fromEl.value){ var d=new Date(l.date.split('/').reverse().join('-')); if(d<new Date(fromEl.value)) return false; }
@@ -1145,6 +1165,22 @@ async function renderFinance() {
     kpi('URSSAF ('+tauxUr+'%)', fmt(benBrut>0?benBrut*tauxUr/100:0)+' €', '#f5a623')+
     kpi('Retraite ('+tauxRet+'%)', fmt(benBrut>0?benBrut*tauxRet/100:0)+' €', '#9b59b6')+
     kpi('Bénéfice net', fmt(benNet)+' €', benNet>=0?'#00875a':'#dc3545');
+
+  // Calcul objectif salaire
+  var objEl = document.getElementById('objectif-salaire');
+  var objMensuel = parseFloat(objEl ? objEl.value : 1500) || 1500;
+  var tauxCharges = (tauxUr + tauxRet) / 100;
+  // Pour avoir X€ net : CA HT nécessaire = X / (1 - tauxCharges) + dépenses
+  var caNecess = objMensuel / (1 - tauxCharges) + depTotal;
+  var caRestant = Math.max(0, caNecess - caEnc);
+  var avancement = caNecess > 0 ? Math.min(100, Math.round(caEnc / caNecess * 100)) : 100;
+  var objHtml = kpi('CA HT nécessaire', fmt(caNecess)+' €', '#0066cc', 'pour '+fmt(objMensuel)+' € net')+
+    kpi('Déjà encaissé', fmt(caEnc)+' €', caEnc>=caNecess?'#00875a':'#f5a623', avancement+'% de l'objectif')+
+    kpi('Reste à facturer', caRestant>0?fmt(caRestant)+' €':'Objectif atteint ✅', caRestant>0?'#dc3545':'#00875a', caRestant>0?(Math.ceil(caRestant/500)+' devis ~500€ HT'):'');
+  // Barre de progression
+  objHtml += '<div style="grid-column:1/-1;background:#f0f4f8;border-radius:8px;overflow:hidden;height:8px;">'
+    +'<div style="width:'+avancement+'%;height:100%;background:'+(avancement>=100?'#00875a':avancement>=50?'#f5a623':'#dc3545')+';transition:width .5s;border-radius:8px;"></div></div>';
+  document.getElementById('fin-objectif').innerHTML = objHtml;
   document.getElementById('fin-tbody').innerHTML = filtered.length ? filtered.map(function(l,i){
     var ht=devisHT(l),tva=ht*0.055,ttc=ht+tva,enc=encaisse(l);
     return '<tr style="border-bottom:1px solid #eee;'+(i%2===0?'background:#fafafa;':'')+'">'
