@@ -1339,7 +1339,7 @@ function generateDevisPDF(){
     else if(_tD.t==='base'||_tD.t==='ejp') _tvD=_tD.kb||_tD.en;
     else if(_tD.t==='tempo'){var _j=_tD.tj,_pp=_tD.tp;_tvD=(p.rh==='nuit'||p.rh==='intelligent')?(_j.b*_pp.bh+_j.w*_pp.wh+_j.r*_pp.rh)/365:(_j.b*_pp.bp+_j.w*_pp.wp+_j.r*_pp.rp)/365;}
     else if(_tD.t==='tlike'){_tvD=(p.rh==='nuit'||p.rh==='intelligent')?(_tD.jp*_tD.pch+_tD.je*_tD.ech)/365:(_tD.jp*_tD.php+_tD.je*_tD.ehp)/365;}
-    var c100d=_tD.t==='drive'?((_tD.df||0)*12/(p.km*365/100)).toFixed(2)+' EUR/100km':_tvD?(p.cveKwh*_tvD).toFixed(2)+' EUR/100km':'-';
+    var c100d=_tD.t==='drive'?((_tD.df||0)*12/(p.km*365/100)).toFixed(2)+' EUR/100km':_tvD?(p.cve*_tvD).toFixed(2)+' EUR/100km':'-';
     var _eT=p.km*365*(p.thermo||7)/100*(p.carbu||1.75)-(_tD.t==='drive'?(_tD.df||0)*12:(p.ve*(_tvD||0.18)));
     var roiD=p.coutB>0?(p.coutB/Math.max((_factA-_tD.ft)+_eT,1)).toFixed(1)+' ans':'-';
 
@@ -1404,7 +1404,7 @@ function generateDevisPDF(){
 
     // Section objet
     bg(10,22,40);doc.rect(14,y,W-28,7,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('OBJET DE LA PRESTATION',16,y+4.8);y+=9;
+    fw('bold');fs(8.5);tc(255,255,255);dt('OBJET DE LA PRESTATION',16,y+5.2);y+=9;
     var objRows=[
       ['Reference borne',s(b.id)+' - '+s(b.nom)],['Marque',s(b.marque)],
       ['Puissance',b.kw+' kW '+(b.phases==='tri'?'Triphase':'Monophase')],
@@ -1424,14 +1424,14 @@ function generateDevisPDF(){
 
     // Section devis
     bg(10,22,40);doc.rect(14,y,W-28,7,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('DETAIL DU DEVIS',16,y+4.8);y+=9;
+    fw('bold');fs(8.5);tc(255,255,255);dt('DETAIL DU DEVIS',16,y+5.2);y+=9;
     bg(26,46,66);doc.rect(14,y-3,W-28,6,'F');
     fw('bold');fs(7.5);tc(255,255,255);dt('Designation',17,y);dt('Montant HT',W-16,y,{align:'right'});y+=6;
     fw('normal');fs(8.5);
     d.lignes.forEach(function(l,i){
       if(i%2===0){bg(246,248,250);doc.rect(14,y-3.5,W-28,6,'F');}
       doc.setDrawColor(230,230,230);doc.rect(14,y-3.5,W-28,6,'S');
-      tc(40,40,40);dt(s(l.l),17,y);fw('bold');dt(n(l.v)+' EUR',W-16,y,{align:'right'});fw('normal');y+=6;
+      var label=s(l.l);if(label.length>52)label=label.substring(0,50)+'...';tc(40,40,40);dt(label,17,y);fw('bold');dt(n(l.v)+' EUR',W-16,y,{align:'right'});fw('normal');y+=6;
     });
     y+=2;doc.line(14,y,W-14,y);y+=4;
     tc(80,80,80);dt('Sous-total HT',17,y);fw('bold');tc(20,20,20);dt(n(d.ht)+' EUR',W-16,y,{align:'right'});fw('normal');y+=6;
@@ -1448,7 +1448,7 @@ function generateDevisPDF(){
     // Section recommandation
     if(y>220){doc.addPage();bg(255,255,255);doc.rect(0,0,W,297,'F');y=15;}
     bg(10,22,40);doc.rect(14,y,W-28,7,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('RECOMMANDATION ABONNEMENT ELECTRIQUE',16,y+4.8);y+=9;
+    fw('bold');fs(8.5);tc(255,255,255);dt('RECOMMANDATION ABONNEMENT ELECTRIQUE',16,y+5.2);y+=9;
     var recoRows=[
       ['Fournisseur recommande',s(_res[0].n)+' - '+s(_res[0].o),true],
       ['Facture annuelle estimee',n(_res[0].ft)+' EUR/an',false],
