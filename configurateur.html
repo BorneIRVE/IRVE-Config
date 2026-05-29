@@ -1404,7 +1404,7 @@ function generateDevisPDF(){
 
     // Section objet
     bg(10,22,40);doc.rect(14,y,W-28,7,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('OBJET DE LA PRESTATION',16,y+5.5);y+=9;
+    fw('bold');fs(8.5);tc(255,255,255);dt('OBJET DE LA PRESTATION',16,y+4.2);y+=9;
     var objRows=[
       ['Reference borne',s(b.id)+' - '+s(b.nom)],['Marque',s(b.marque)],
       ['Puissance',b.kw+' kW '+(b.phases==='tri'?'Triphase':'Monophase')],
@@ -1424,7 +1424,7 @@ function generateDevisPDF(){
 
     // Section devis
     bg(10,22,40);doc.rect(14,y,W-28,7,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('DETAIL DU DEVIS',16,y+5.5);y+=9;
+    fw('bold');fs(8.5);tc(255,255,255);dt('DETAIL DU DEVIS',16,y+4.2);y+=9;
     bg(26,46,66);doc.rect(14,y-3,W-28,6,'F');
     fw('bold');fs(7.5);tc(255,255,255);dt('Designation',17,y);dt('Montant HT',W-16,y,{align:'right'});y+=6;
     fw('normal');fs(8.5);
@@ -1448,7 +1448,7 @@ function generateDevisPDF(){
     // Section recommandation
     if(y>220){doc.addPage();bg(255,255,255);doc.rect(0,0,W,297,'F');y=15;}
     bg(10,22,40);doc.rect(14,y,W-28,7,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('RECOMMANDATION ABONNEMENT ELECTRIQUE',16,y+5.5);y+=9;
+    fw('bold');fs(8.5);tc(255,255,255);dt('RECOMMANDATION ABONNEMENT ELECTRIQUE',16,y+4.2);y+=9;
     var recoRows=[
       ['Fournisseur recommande',s(_res[0].n)+' - '+s(_res[0].o),true],
       ['Facture annuelle estimee',n(_res[0].ft)+' EUR/an',false],
@@ -1558,7 +1558,7 @@ function generatePDF(){
       ['Nb bornes',String(d.nbB)],
     ];
     fw('normal');doc.setFontSize(8.5);
-    y+=10;
+    y+=13;
     rows.forEach(function(r,i){
       var col=i<5?14:W/2+4,row=i<5?y+(i*6):y+((i-5)*6);
       tc(100,120,140);dt(r[0],col,row);tc(20,40,60);dt(s(r[1]),col+42,row);
