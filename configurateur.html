@@ -1403,8 +1403,8 @@ function generateDevisPDF(){
     doc.setDrawColor(200,200,200);doc.setLineWidth(0.3);doc.line(14,y,W-14,y);y+=5;
 
     // Section objet
-    bg(10,22,40);doc.rect(14,y,W-28,6,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('OBJET DE LA PRESTATION',16,y+4);y+=8;
+    bg(10,22,40);doc.rect(14,y,W-28,7,'F');
+    fw('bold');fs(8.5);tc(255,255,255);dt('OBJET DE LA PRESTATION',16,y+4.8);y+=9;
     var objRows=[
       ['Reference borne',s(b.id)+' - '+s(b.nom)],['Marque',s(b.marque)],
       ['Puissance',b.kw+' kW '+(b.phases==='tri'?'Triphase':'Monophase')],
@@ -1423,8 +1423,8 @@ function generateDevisPDF(){
     y+=4;doc.line(14,y,W-14,y);y+=5;
 
     // Section devis
-    bg(10,22,40);doc.rect(14,y,W-28,6,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('DETAIL DU DEVIS',16,y+4);y+=8;
+    bg(10,22,40);doc.rect(14,y,W-28,7,'F');
+    fw('bold');fs(8.5);tc(255,255,255);dt('DETAIL DU DEVIS',16,y+4.8);y+=9;
     bg(26,46,66);doc.rect(14,y-3,W-28,6,'F');
     fw('bold');fs(7.5);tc(255,255,255);dt('Designation',17,y);dt('Montant HT',W-16,y,{align:'right'});y+=6;
     fw('normal');fs(8.5);
@@ -1447,8 +1447,8 @@ function generateDevisPDF(){
 
     // Section recommandation
     if(y>220){doc.addPage();bg(255,255,255);doc.rect(0,0,W,297,'F');y=15;}
-    bg(10,22,40);doc.rect(14,y,W-28,6,'F');
-    fw('bold');fs(8.5);tc(255,255,255);dt('RECOMMANDATION ABONNEMENT ELECTRIQUE',16,y+4);y+=8;
+    bg(10,22,40);doc.rect(14,y,W-28,7,'F');
+    fw('bold');fs(8.5);tc(255,255,255);dt('RECOMMANDATION ABONNEMENT ELECTRIQUE',16,y+4.8);y+=9;
     var recoRows=[
       ['Fournisseur recommande',s(_res[0].n)+' - '+s(_res[0].o),true],
       ['Facture annuelle estimee',n(_res[0].ft)+' EUR/an',false],
@@ -1500,9 +1500,6 @@ function generatePDF(){
     var p=_params, top=_res[0], d=_devis, b=_sel;
     var W=210;
     var N=[10,14,20],G=[107,133,168],BL=[240,247,255],LM=[0,180,100];
-
-    // Fond blanc page 1
-    bg(255,255,255);doc.rect(0,0,W,297,'F');
     var s=function(v){
       if(v===null||v===undefined) return '-';
       return String(v)
@@ -1517,6 +1514,9 @@ function generatePDF(){
     var bg=function(){doc.setFillColor.apply(doc,arguments);};
     var dt=function(t,x,y,o){doc.text(s(String(t||'-')),x,y,o||{});};
     var isCopro=p.itype==='particulier_copro';
+
+    // Fond blanc page 1
+    bg(255,255,255);doc.rect(0,0,W,297,'F');
 
     // Header
     bg.apply(null,N);doc.rect(0,0,W,28,'F');
