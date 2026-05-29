@@ -859,11 +859,11 @@ function closeMenu(){
 document.addEventListener('click', function(e){
   if(!e.target.closest('#hamburger-btn') && !e.target.closest('#nav-dropdown')) closeMenu();
 });
-// Attacher le bouton hamburger via JS (évite ReferenceError avec onclick inline)
-document.addEventListener('DOMContentLoaded', function(){
+// Attacher le bouton hamburger directement (le script est après le DOM)
+(function(){
   var btn = document.getElementById('hamburger-btn');
   if(btn) btn.addEventListener('click', function(e){ e.stopPropagation(); toggleMenu(); });
-});
+})();
 
 // ── CRM CONFIG ─────────────────────────────────
 var CRM_PWD = 'irve2024';
