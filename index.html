@@ -1428,27 +1428,6 @@ async function exporterRapport() {
   alert('Rapport CSV téléchargé !\n\nPour obtenir un ZIP avec toutes vos factures, ouvrez les liens Google Drive listés dans le fichier CSV.');
 }
 
-
-
-function openCRM(e){
-  e.preventDefault();
-  if(sessionStorage.getItem('crm_auth')==='1'){ showCRM(); }
-  else { document.getElementById('crm-login').style.display='flex'; }
-}
-
-function checkPwd(){
-  var pwd = document.getElementById('crm-pwd').value;
-  if(pwd===CRM_PWD){
-    sessionStorage.setItem('crm_auth','1');
-    document.getElementById('crm-login').style.display='none';
-    document.getElementById('crm-pwd').value='';
-    document.getElementById('crm-pwd-err').style.display='none';
-    showCRM();
-  } else {
-    document.getElementById('crm-pwd-err').style.display='block';
-  }
-}
-
 function showCRM(){
   document.getElementById('crm-panel').style.display='block';
   document.getElementById('crm-overlay').style.display='block';
