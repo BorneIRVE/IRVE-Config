@@ -558,7 +558,8 @@ input[type=checkbox]{width:auto;accent-color:var(--lime);}
         <div class="fld"><label>Prénom & Nom *</label><input type="text" id="c-nom" placeholder="Jean Dupont"></div>
         <div class="fld"><label>Email *</label><input type="email" id="c-email" placeholder="jean@exemple.fr"></div>
         <div class="fld"><label>Téléphone</label><input type="tel" id="c-tel" placeholder="06 12 34 56 78"></div>
-        <div class="fld"><label>Code postal</label><input type="text" id="c-cp" placeholder="75001" maxlength="5"></div>
+        <div class="fld"><label>Adresse</label><input type="text" id="c-adr" placeholder="12 rue de la Paix"></div>
+        <div class="fld g2"><input type="text" id="c-cp" placeholder="75001" maxlength="5" style="flex:0 0 100px;"><input type="text" id="c-ville" placeholder="Paris"></div>
       </div>
       <div class="card">
         <div class="fld"><label>Message complémentaire</label><textarea id="c-msg" placeholder="Informations complémentaires…"></textarea></div>
@@ -1226,6 +1227,9 @@ async function lancerAnalyse(){
       email: email,
       tel:   document.getElementById('c-tel').value||'-',
       cp:    document.getElementById('c-cp').value||'-',
+      adr:   document.getElementById('c-adr').value||'-',
+      ville: document.getElementById('c-ville').value||'-',
+      adresse: (document.getElementById('c-adr').value||'')+(document.getElementById('c-cp').value?' '+document.getElementById('c-cp').value:'')+(document.getElementById('c-ville').value?' '+document.getElementById('c-ville').value:''),
       itype: _params.itype.replace(/_/g,' '),
       nb_b:  String(_devis.nbB),
       borne: _sel.nom,
@@ -1308,6 +1312,8 @@ async function envoyerEmail(nom, email, top, roiAns, c100){
       email:        email,
       tel:          document.getElementById('c-tel').value  || '-',
       cp:           document.getElementById('c-cp').value   || '-',
+      adr:          document.getElementById('c-adr').value  || '-',
+      ville:        document.getElementById('c-ville').value || '-',
       msg:          document.getElementById('c-msg').value  || '',
       itype:        p.itype.replace(/_/g,' '),
       nb_bornes:    String(d.nbB),
@@ -1437,6 +1443,9 @@ function generateDevisPDF(){
     var emailC=document.getElementById('c-email').value||'';
     var telC=document.getElementById('c-tel').value||'-';
     var cpC=document.getElementById('c-cp').value||'-';
+    var adrC=document.getElementById('c-adr').value||'';
+    var villeC=document.getElementById('c-ville').value||'';
+    var adresseC=adrC?(adrC+(cpC&&cpC!=='-'?' - '+cpC:'')+(villeC?' '+villeC:'')):(cpC+(villeC?' '+villeC:''));
     var raisonEl=document.getElementById('raison');
     var raisonC=raisonEl?raisonEl.value:'';
 
@@ -1452,8 +1461,8 @@ function generateDevisPDF(){
     dt(s(ENTREPRISE.adresse),17,y+17);
     dt(s(ENTREPRISE.cp_ville),17,y+22);
     dt('Tel: '+s(ENTREPRISE.tel),17,y+27);
-    if(raisonC){dt(s(raisonC),111,y+17);dt(s(cpC),111,y+22);dt(s(telC),111,y+27);}
-    else{dt(s(cpC),111,y+17);dt(s(telC),111,y+22);dt(s(emailC),111,y+27);}
+    if(raisonC){dt(s(raisonC),111,y+17);dt(s(adresseC||cpC),111,y+22);dt(s(telC),111,y+27);dt(s(emailC),111,y+32);}
+    else{dt(s(adresseC||cpC),111,y+17);dt(s(telC),111,y+22);dt(s(emailC),111,y+27);}
     y+=36;
     fw('normal');fs(7.5);tc(100,100,100);
     dt('Valide jusqu\'au: '+validite+' | Type installation: '+s(p.itype.replace(/_/g,' ')),14,y);
@@ -1635,6 +1644,7 @@ function generatePDF(){
       ['Client',document.getElementById('c-nom').value||'-'],
       ['Email',document.getElementById('c-email').value||'-'],
       ['Tel',document.getElementById('c-tel').value||'-'],
+      ['Adresse',(document.getElementById('c-adr').value||'')+(document.getElementById('c-ville').value?' - '+document.getElementById('c-ville').value:'')],
       ['Installation',p.itype.replace(/_/g,' ')],
       ['Conso. foyer',n(p.ct)+' kWh/an'],
       ['Conso. VE',n(p.ve)+' kWh/an ('+p.km+' km/j)'],
@@ -1781,6 +1791,9 @@ async function generateDocx(){
   const emailClient= document.getElementById('c-email').value || '';
   const telClient  = document.getElementById('c-tel').value   || '';
   const cpClient   = document.getElementById('c-cp').value    || '';
+  const adrClient  = document.getElementById('c-adr').value   || '';
+  const villeClient= document.getElementById('c-ville').value  || '';
+  const adresseClient = adrClient ? (adrClient + (cpClient ? ' - ' + cpClient : '') + (villeClient ? ' ' + villeClient : '')) : (cpClient + (villeClient ? ' ' + villeClient : ''));
   const isPro      = p.ctype === 'pro';
   const raisonSoc  = document.getElementById('raison')?.value || '';
   const today      = new Date().toLocaleDateString('fr-FR');
