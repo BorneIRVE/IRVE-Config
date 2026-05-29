@@ -245,7 +245,7 @@ footer{background:var(--ink);border-top:1px solid var(--border);padding:40px 6vw
     <span class="logo-text">Volt<span>Expert</span></span>
   </a>
 
-  <button class="hamburger" id="hamburger-btn" onclick="toggleMenu()" aria-label="Menu">
+  <button class="hamburger" id="hamburger-btn" aria-label="Menu">
     <div class="bars">
       <span class="bar"></span>
       <span class="bar"></span>
@@ -858,6 +858,11 @@ function closeMenu(){
 // Fermer si clic ailleurs
 document.addEventListener('click', function(e){
   if(!e.target.closest('#hamburger-btn') && !e.target.closest('#nav-dropdown')) closeMenu();
+});
+// Attacher le bouton hamburger via JS (évite ReferenceError avec onclick inline)
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('hamburger-btn');
+  if(btn) btn.addEventListener('click', function(e){ e.stopPropagation(); toggleMenu(); });
 });
 
 // ── CRM CONFIG ─────────────────────────────────
