@@ -1333,13 +1333,12 @@ function generateDevisPDF(){
     var validite=new Date(Date.now()+30*24*60*60*1000).toLocaleDateString('fr-FR');
     var isCopro=p.itype==='particulier_copro';
 
-    // Calcul ROI et coût 100km
-    var _tD=_res[0],_tvD=null;
-    if(_tD.t==='hchp') _tvD=(p.rh==='nuit'||p.rh==='intelligent')?_tD.hc:p.rh==='mixte'?(_tD.hc||0)*.6+(_tD.hp||0)*.4:_tD.hp;
-    else if(_tD.t==='base'||_tD.t==='ejp') _tvD=_tD.kb||_tD.en;
-    else if(_tD.t==='tempo'){var _j=_tD.tj,_pp=_tD.tp;_tvD=(p.rh==='nuit'||p.rh==='intelligent')?(_j.b*_pp.bh+_j.w*_pp.wh+_j.r*_pp.rh)/365:(_j.b*_pp.bp+_j.w*_pp.wp+_j.r*_pp.rp)/365;}
-    else if(_tD.t==='tlike'){_tvD=(p.rh==='nuit'||p.rh==='intelligent')?(_tD.jp*_tD.pch+_tD.je*_tD.ech)/365:(_tD.jp*_tD.php+_tD.je*_tD.ehp)/365;}
-    var c100d=_tD.t==='drive'?((_tD.df||0)*12/(p.km*365/100)).toFixed(2)+' EUR/100km':(_tvD&&p.cve&&p.cve>0)?(p.cve*_tvD).toFixed(2)+' EUR/100km':(_tvD&&p.ve&&p.km)?(p.ve/p.km/365*100*_tvD).toFixed(2)+' EUR/100km':'-';
+    // Calcul ROI et coût 100km — même formule que lancerAnalyse
+    var _tD=_res[0];
+    var _tvD=tveff(_tD,p.rh);
+    var c100d=_tD.t==='drive'
+      ?((_tD.df||0)*12/(p.km*365/100)).toFixed(2)+' EUR/100km'
+      :(_tvD&&p.cve)?(p.cve*_tvD).toFixed(2)+' EUR/100km':'-';
     var _eT=p.km*365*(p.thermo||7)/100*(p.carbu||1.75)-(_tD.t==='drive'?(_tD.df||0)*12:(p.ve*(_tvD||0.18)));
     var roiD=p.coutB>0?(p.coutB/Math.max((_factA-_tD.ft)+_eT,1)).toFixed(1)+' ans':'-';
 
@@ -1703,31 +1702,12 @@ async function generateDocx(){
   const refDevis   = (_devis&&_devis.ref)?_devis.ref:'IRVE-'+Date.now().toString().slice(-6);
   const validite   = new Date(Date.now()+30*24*60*60*1000).toLocaleDateString('fr-FR');
   const diff       = Math.round(_res[0].ft - _factA);
-  // Calcul inline du tarif VE effectif (évite dépendance à tarifVEEffectif)
+  // Calcul inline du tarif VE effectif — même formule que lancerAnalyse
   var _top = _res[0];
-  var _tvE = null;
-  if(_top.t==='hchp'){
-    if(p.rh==='nuit'||p.rh==='intelligent') _tvE=_top.hc;
-    else if(p.rh==='mixte') _tvE=(_top.hc||0)*.6+(_top.hp||0)*.4;
-    else _tvE=_top.hp;
-    if(_top.id==='oct_int') _tvE=Math.max(0,(_top.hc||0)-(_top.bm||0));
-  } else if(_top.t==='base'||_top.t==='ejp') {
-    _tvE=_top.kb||_top.en;
-  } else if(_top.t==='tempo') {
-    var _j=_top.tj,_pp=_top.tp,_tot=365;
-    var _hm=(_j.b*_pp.bh+_j.w*_pp.wh+_j.r*_pp.rh)/_tot;
-    var _pm=(_j.b*_pp.bp+_j.w*_pp.wp+_j.r*_pp.rp)/_tot;
-    _tvE=(p.rh==='nuit'||p.rh==='intelligent')?_hm:p.rh==='mixte'?_hm*.6+_pm*.4:_pm;
-  } else if(_top.t==='tlike') {
-    var _tot2=365;
-    var _hm2=(_top.jp*_top.pch+_top.je*_top.ech)/_tot2;
-    var _pm2=(_top.jp*_top.php+_top.je*_top.ehp)/_tot2;
-    _tvE=(p.rh==='nuit'||p.rh==='intelligent')?_hm2:p.rh==='mixte'?_hm2*.6+_pm2*.4:_pm2;
-  }
-  const tvE = _tvE;
+  const tvE = tveff(_top, p.rh);
   const c100direct = _top.t==='drive'
     ? ((_top.df||0)*12/(p.km*365/100)).toFixed(2)+' €/100km'
-    : tvE ? (p.cveKwh*tvE).toFixed(2)+' €/100km' : '-';
+    : (tvE && p.cve) ? (p.cve*tvE).toFixed(2)+' €/100km' : '-';
   const econoThermo  = p.km*365*p.thermo/100*p.carbu;
   const coutElecVE   = _top.t==='drive'?(_top.df||0)*12:(p.ve*(tvE||0.18));
   const econoTot     = Math.max(((_factA-_top.ft)+(econoThermo-coutElecVE)),1);
