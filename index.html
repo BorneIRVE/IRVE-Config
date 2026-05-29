@@ -1163,12 +1163,13 @@ function resetFinDates(){ document.getElementById('fin-date-from').value=''; doc
 
 // ── ONGLET DÉPENSES ───────────────────────────
 var _depenses = [];
-async function renderDepenses() {
-  try { _depenses = await apiGetDepenses(); } catch(e){ _depenses=[]; }
-  // Init date par défaut
-  if(!document.getElementById('dep-date').value) {
-    document.getElementById('dep-date').valueAsDate = new Date();
+async function renderDepenses(forceReload) {
+  if(forceReload !== false) {
+    try { _depenses = await apiGetDepenses(); } catch(e){ console.error('renderDepenses:', e); _depenses=[]; }
   }
+  // Init date par défaut
+  var depDateEl = document.getElementById('dep-date');
+  if(depDateEl && !depDateEl.value) depDateEl.valueAsDate = new Date();
   var fCat = document.getElementById('dep-filter-cat').value;
   var filtered = fCat ? _depenses.filter(function(d){return d.cat===fCat;}) : _depenses;
   // KPIs par catégorie
@@ -1182,7 +1183,6 @@ async function renderDepenses() {
   }).join('');
   document.getElementById('dep-kpis').innerHTML = kpisHtml ||
     '<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:8px;">Aucune dépense enregistrée</div>';
-  // Table
   var tbody = document.getElementById('dep-tbody');
   var empty = document.getElementById('dep-empty');
   if(!filtered.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
@@ -1208,31 +1208,47 @@ async function ajouterDepense() {
   var desc = document.getElementById('dep-desc').value.trim();
   if(!desc || !ht || ht<=0){ alert('Description et montant HT requis'); return; }
 
+  var btn = document.querySelector('button[onclick="ajouterDepense()"]');
+  if(btn){ btn.textContent='⏳ Sauvegarde...'; btn.disabled=true; }
+
   var dep = {
     id: Date.now().toString(),
     cat: document.getElementById('dep-cat').value,
     desc: desc,
     ht: ht,
-    date: document.getElementById('dep-date').value
-      ? new Date(document.getElementById('dep-date').value).toLocaleDateString('fr-FR')
-      : new Date().toLocaleDateString('fr-FR'),
+    date: (function(){
+      var v = document.getElementById('dep-date').value;
+      if(!v) return new Date().toLocaleDateString('fr-FR');
+      var p = v.split('-'); return p[2]+'/'+p[1]+'/'+p[0];
+    })(),
     fourn: document.getElementById('dep-fourn').value.trim(),
     drive: document.getElementById('dep-drive').value.trim(),
   };
 
-  // Charger les dépenses existantes depuis Vercel
+  // 1. Lire les dépenses existantes
   var existing = [];
-  try { existing = await apiGetDepenses(); } catch(e) { existing = []; }
-  existing.unshift(dep);
+  try {
+    existing = await apiGetDepenses();
+    console.log('Dépenses existantes chargées:', existing.length);
+  } catch(e) {
+    console.warn('Impossible de charger les dépenses existantes:', e.message, '— on continue avec tableau vide');
+  }
 
+  existing.unshift(dep);
+  console.log('Nouvelle dépense:', dep);
+
+  // 2. Sauvegarder
   try {
     var r = await fetch(VERCEL_URL + '/api/save-depenses', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + CRM_PWD, 'Content-Type': 'application/json' },
       body: JSON.stringify({ depenses: existing })
     });
-    var json = await r.json();
-    if (!r.ok || !json.success) throw new Error(json.error || 'Erreur ' + r.status);
+    var txt = await r.text();
+    console.log('save-depenses réponse:', r.status, txt);
+    if (!r.ok) throw new Error('HTTP ' + r.status + ': ' + txt);
+    var json = JSON.parse(txt);
+    if (!json.success) throw new Error(json.error || 'Echec sauvegarde');
 
     // Reset formulaire
     document.getElementById('dep-ht').value = '';
@@ -1240,9 +1256,12 @@ async function ajouterDepense() {
     document.getElementById('dep-fourn').value = '';
     document.getElementById('dep-drive').value = '';
     _depenses = existing;
-    renderDepenses();
+    if(btn){ btn.textContent='✅ Ajouter la dépense'; btn.disabled=false; }
+    renderDepenses(false);
   } catch(e) {
-    alert('Erreur sauvegarde: ' + e.message);
+    console.error('Erreur save-depenses:', e);
+    alert('Erreur sauvegarde: ' + e.message + '\n\nVérifiez les logs Vercel.');
+    if(btn){ btn.textContent='✅ Ajouter la dépense'; btn.disabled=false; }
   }
 }
 
@@ -1258,7 +1277,7 @@ async function supprimerDepense(id) {
     });
     if (!r.ok) throw new Error('Erreur ' + r.status);
     _depenses = existing;
-    renderDepenses();
+    renderDepenses(false);
   } catch(e) { alert('Erreur: ' + e.message); }
 }
 
